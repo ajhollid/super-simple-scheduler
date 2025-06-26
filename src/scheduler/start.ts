@@ -9,7 +9,7 @@ export function start(this: IScheduler) {
   }
 
   this._intervalId = setInterval(() => {
-    this.processNextJob();
+    this.processJobs();
   }, this.processEvery);
 
   return true;

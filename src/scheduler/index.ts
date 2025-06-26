@@ -1,6 +1,6 @@
 import { start as startFunction } from "./start.js";
 import { stop as stopFunction } from "./stop.js";
-import { processNextJob as processNextJobFunction } from "./process-next-job.js";
+import { processJobs as processJobsFunction } from "./process-jobs.js";
 import { addTemplate as addTemplateFunction } from "./add-template.js";
 import { addJob as addJobFunction } from "./add-job.js";
 import humanInterval from "human-interval";
@@ -25,7 +25,7 @@ export interface IScheduler {
     repeat?: number;
     data?: any;
   }) => void;
-  processNextJob: () => void;
+  processJobs: () => void;
 }
 
 class Scheduler implements IScheduler {
@@ -49,8 +49,8 @@ class Scheduler implements IScheduler {
     return stopFunction;
   }
 
-  get processNextJob(): () => void {
-    return processNextJobFunction;
+  get processJobs(): () => void {
+    return processJobsFunction;
   }
 
   get addTemplate(): (
