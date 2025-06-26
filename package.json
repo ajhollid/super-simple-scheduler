@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A simple scheduler for Node.js",
   "main": "dist/scheduler/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/scheduler/index.d.ts",
   "files": [
     "dist"
   ],
