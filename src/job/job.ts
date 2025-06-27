@@ -10,4 +10,5 @@ export interface IJob {
   lastFailedAt?: number | null;
   lastFailReason?: string | null;
   failCount?: number;
+  runCount?: number;
 }

@@ -10,6 +10,7 @@ import { resumeJob as resumeJobFunction } from "./resume-job.js";
 import { removeJob as removeJobFunction } from "./remove-job.js";
 import { getJobs as getJobsFunction } from "./get-jobs.js";
 import { flushJobs as flushJobsFunction } from "./flush-jobs.js";
+import { updateJob as updateJobFunction } from "./update-job.js";
 import humanInterval from "human-interval";
 import { Logger } from "../utils/logger.js";
 
@@ -49,6 +50,7 @@ export interface IScheduler {
   removeJob: (id: string | number) => boolean;
   getJobs: () => Array<IJob>;
   flushJobs: () => boolean;
+  updateJob: (id: string | number, repeat: number) => boolean;
 }
 
 class Scheduler implements IScheduler {
@@ -133,6 +135,10 @@ class Scheduler implements IScheduler {
 
   get flushJobs(): () => boolean {
     return flushJobsFunction;
+  }
+
+  get updateJob(): (id: string | number, repeat: number) => boolean {
+    return updateJobFunction;
   }
 }
 
