@@ -2,12 +2,9 @@ import { IScheduler } from "./index.js";
 
 export async function processJobs(this: IScheduler) {
   const now = Date.now();
-  const jobsToProcess = this._jobs.splice(0);
 
-  for (const job of jobsToProcess) {
-    // Job has been paused, add it back to the queue
+  for (const job of this._jobs) {
     if (!job.active) {
-      this._jobs.push(job);
       continue;
     }
 
@@ -16,7 +13,6 @@ export async function processJobs(this: IScheduler) {
       (job.repeat !== null && now - job.lastRunAt >= job.repeat);
 
     if (!shouldRun) {
-      this._jobs.push(job);
       continue;
     }
 

@@ -5,16 +5,30 @@ scheduler.addTemplate("test", (data) => {
 
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      // resolve();
-      reject(new Error("test error"));
+      console.log("running job");
+      resolve();
+      // reject(new Error("test error"));
     }, delay);
   });
 });
+scheduler.addTemplate("test2", (data) => {
+  console.log("running job 2");
+});
+
 for (let i = 0; i < 1; i++) {
   scheduler.addJob({
     id: `test-${i}`,
     template: "test",
     repeat: 2000,
+    data: `test ${i}`,
+    active: i % 2 === 0,
+  });
+}
+
+for (let i = 0; i < 1; i++) {
+  scheduler.addJob({
+    id: `test2-${i}`,
+    template: "test2",
     data: `test ${i}`,
     active: i % 2 === 0,
   });

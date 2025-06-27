@@ -34,8 +34,8 @@ export async function processNextJob(
 
   job.lockedAt = null;
 
-  if (job.repeat !== null) {
-    this._jobs.push(job);
+  if (job.repeat === null) {
+    this._jobs.splice(this._jobs.indexOf(job), 1);
   }
 
   if (!success) {
