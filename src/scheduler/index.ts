@@ -24,7 +24,6 @@ export interface IScheduler {
   stop: () => boolean;
   _processJobs: () => void;
   _processNextJob: (
-    now: number,
     job: IJob,
     jobFn: (data?: any) => void | Promise<void>
   ) => Promise<void>;
@@ -87,7 +86,6 @@ class Scheduler implements IScheduler {
   }
 
   get _processNextJob(): (
-    now: number,
     job: IJob,
     jobFn: (data?: any) => void | Promise<void>
   ) => Promise<void> {

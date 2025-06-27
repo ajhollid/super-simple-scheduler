@@ -2,7 +2,6 @@ import { IJob } from "../job/job.js";
 import { IScheduler } from "./index.js";
 export async function processNextJob(
   this: IScheduler,
-  now: number,
   job: IJob,
   jobFn: (data?: any) => void | Promise<void>
 ): Promise<void> {
@@ -10,9 +9,12 @@ export async function processNextJob(
   let attempts = 0;
   let success = false;
 
+  job.lockedAt = Date.now();
+
   while (attempts < maxRetries) {
     attempts++;
     try {
+      job.lastRunAt = Date.now();
       job.runCount = (job.runCount ?? 0) + 1;
       await jobFn(job.data);
       success = true;
@@ -25,10 +27,13 @@ export async function processNextJob(
       this._logger.warn(`Job failed (attempt ${attempts}/${maxRetries})`, {
         job,
       });
+    } finally {
+      job.lastFinishedAt = Date.now();
     }
   }
 
-  job.lastRunAt = now;
+  job.lockedAt = null;
+
   if (job.repeat !== null) {
     this._jobs.push(job);
   }

@@ -3,10 +3,11 @@ export interface IJob {
   template: string;
   data?: any;
   repeat?: number;
-  lastRunAt?: number | null;
-  lockedAt?: number | null;
   maxRetries?: number;
   active: boolean;
+  lastRunAt?: number | null;
+  lastFinishedAt?: number | null;
+  lockedAt?: number | null;
   lastFailedAt?: number | null;
   lastFailReason?: string | null;
   failCount?: number;

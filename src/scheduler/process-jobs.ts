@@ -26,7 +26,7 @@ export async function processJobs(this: IScheduler) {
       continue;
     }
 
-    this._processNextJob(now, job, jobFn).catch((error) => {
+    this._processNextJob(job, jobFn).catch((error) => {
       this._logger.error("Unexpected error while processing job:", error);
     });
   }
