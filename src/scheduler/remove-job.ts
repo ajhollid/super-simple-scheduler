@@ -6,6 +6,11 @@ export function removeJob(this: IScheduler, id: string | number) {
     this._logger.warn(`Job with id ${id} not found`);
     return false;
   }
-  this._jobs.splice(this._jobs.indexOf(job), 1);
-  return true;
+
+  const index = this._jobs.findIndex((j) => j.id === job.id);
+
+  if (index !== -1) {
+    this._jobs.splice(index, 1);
+    return true;
+  } else return false;
 }
