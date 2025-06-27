@@ -1,7 +1,7 @@
 import { IScheduler } from "./index.js";
 
 export function stop(this: IScheduler) {
-  console.log("Stopping scheduler");
+  this._logger.info("Scheduler stopped");
   if (this._intervalId) {
     clearInterval(this._intervalId);
   }
