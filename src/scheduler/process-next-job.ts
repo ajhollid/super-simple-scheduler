@@ -13,7 +13,7 @@ export async function processNextJob(
   while (attempts < maxRetries) {
     attempts++;
     try {
-      job.runCount = (job.runsCount ?? 0) + 1;
+      job.runCount = (job.runCount ?? 0) + 1;
       await jobFn(job.data);
       success = true;
       break;
