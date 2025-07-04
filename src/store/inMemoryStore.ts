@@ -1,0 +1,48 @@
+import { IStore } from "./store.js";
+import { IJob } from "../job/job.js";
+
+export class InMemoryStore implements IStore {
+  private jobs = new Map<string | number, IJob>();
+  private templates = new Map<string, (data?: any) => void | Promise<void>>();
+
+  async addJob(job: IJob): Promise<boolean> {
+    this.jobs.set(job.id, job);
+    return true;
+  }
+
+  async getJob(id: string | number): Promise<IJob | null> {
+    return this.jobs.get(id) || null;
+  }
+
+  async removeJob(id: string | number): Promise<boolean> {
+    return this.jobs.delete(id);
+  }
+
+  async updateJob(id: string, updates: Partial<IJob>): Promise<boolean> {
+    if (!this.jobs.has(id)) {
+      return false;
+    }
+
+    const updatedJob = { ...this.jobs.get(id), ...updates } as IJob;
+    this.jobs.set(id, updatedJob);
+    return true;
+  }
+
+  async getJobs(): Promise<IJob[]> {
+    return Array.from(this.jobs.values());
+  }
+
+  async addTemplate(
+    name: string,
+    template: (data?: any) => void | Promise<void>
+  ): Promise<boolean> {
+    this.templates.set(name, template);
+    return true;
+  }
+
+  async getTemplate(
+    name: string
+  ): Promise<((data?: any) => void | Promise<void>) | null> {
+    return this.templates.get(name) ?? null;
+  }
+}

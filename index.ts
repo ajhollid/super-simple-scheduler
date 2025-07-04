@@ -1,5 +1,6 @@
-import Scheduler from "./src/scheduler/index.js";
-const scheduler = new Scheduler();
+import { Scheduler } from "./src/scheduler/index.js";
+import { InMemoryStore } from "./src/store/inMemoryStore.js";
+const scheduler = new Scheduler(new InMemoryStore());
 scheduler.addTemplate("test", (data) => {
   const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
 
@@ -34,6 +35,7 @@ for (let i = 0; i < 1; i++) {
   });
 }
 scheduler.start();
+
 // setInterval(() => {
 //   const mem = process.memoryUsage();
 //   const rss = (mem.rss / 1024 / 1024).toFixed(1);

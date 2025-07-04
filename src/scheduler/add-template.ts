@@ -1,10 +1,9 @@
-import { IScheduler } from "./index.js";
+import { IScheduler } from "./scheduler.js";
 
-export function addTemplate(
+export async function addTemplate(
   this: IScheduler,
   name: string,
   template: (data?: any) => void | Promise<void>
-): boolean {
-  this._jobTemplates.set(name, template);
-  return true;
+) {
+  return await this.store.addTemplate(name, template);
 }

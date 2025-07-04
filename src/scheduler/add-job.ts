@@ -1,7 +1,7 @@
-import { IScheduler } from "./index.js";
+import { IScheduler } from "./scheduler.js";
 import { v4 as uuidv4 } from "uuid";
 
-export function addJob(
+export async function addJob(
   this: IScheduler,
   {
     id,
@@ -17,12 +17,18 @@ export function addJob(
     active?: boolean;
   }
 ) {
-  if (id && this._jobs.find((job) => job.id === id)) {
-    this._logger.warn(`Job with id ${id} already exists`);
+  if (!id) {
+    this.logger.warn(`Job id is required`);
+    return false;
+  }
+  const existingJob = await this.store.getJob(id);
+
+  if (existingJob) {
+    this.logger.warn(`Job with id ${id} already exists`);
     return false;
   }
 
-  this._jobs.push({
+  await this.store.addJob({
     id: id ?? uuidv4(),
     template: template,
     data: data,

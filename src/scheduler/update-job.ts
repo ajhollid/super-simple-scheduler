@@ -1,16 +1,10 @@
-import { IScheduler } from "./index.js";
+import { IScheduler } from "./scheduler.js";
+import { IJob } from "../job/job.js";
 
-export function updateJob(
+export async function updateJob(
   this: IScheduler,
   id: string | number,
-  repeat: number
+  updates: Partial<IJob>
 ) {
-  const job = this._jobs.find((job) => job.id === id);
-  if (!job) {
-    this._logger.warn(`[Scheduler] Job ${id} not found`);
-    return false;
-  }
-  job.repeat = repeat;
-  this._logger.info(`[Scheduler] Job ${id} updated`);
-  return true;
+  return await this.store.updateJob(id, updates);
 }

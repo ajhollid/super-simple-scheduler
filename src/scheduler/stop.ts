@@ -1,10 +1,10 @@
-import { IScheduler } from "./index.js";
+import { IScheduler } from "./scheduler.js";
 
 export function stop(this: IScheduler) {
-  this._logger.info("Scheduler stopped");
-  if (this._intervalId) {
-    clearInterval(this._intervalId);
+  this.logger.info("Scheduler stopped");
+  if (this.intervalId) {
+    clearInterval(this.intervalId);
   }
-  this._intervalId = null;
+  this.intervalId = null;
   return true;
 }

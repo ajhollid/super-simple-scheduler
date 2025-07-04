@@ -1,14 +1,14 @@
-import { IScheduler } from "./index.js";
+import { IScheduler } from "./scheduler.js";
 
 export function start(this: IScheduler) {
-  this._logger.info("Scheduler started");
+  this.logger.info("Scheduler started");
 
-  if (this._intervalId) {
-    clearInterval(this._intervalId);
+  if (this.intervalId) {
+    clearInterval(this.intervalId);
   }
 
-  this._intervalId = setInterval(() => {
-    this._processJobs();
+  this.intervalId = setInterval(() => {
+    this.processJobs();
   }, this.processEvery);
 
   return true;

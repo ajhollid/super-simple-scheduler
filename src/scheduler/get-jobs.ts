@@ -1,5 +1,5 @@
-import { IScheduler } from "./index.js";
+import { IScheduler } from "./scheduler.js";
 
-export function getJobs(this: IScheduler) {
-  return this._jobs;
+export async function getJobs(this: IScheduler) {
+  return this.store.getJobs();
 }

@@ -1,5 +1,6 @@
 import { IJob } from "../job/job.js";
-import { IScheduler } from "./index.js";
+import { IScheduler } from "./scheduler.js";
+
 export async function processNextJob(
   this: IScheduler,
   job: IJob,
@@ -10,6 +11,7 @@ export async function processNextJob(
   let success = false;
 
   job.lockedAt = Date.now();
+  await this.store.updateJob(job.id, { ...job });
 
   while (attempts < maxRetries) {
     attempts++;
@@ -24,7 +26,7 @@ export async function processNextJob(
       job.lastFailedAt = Date.now();
       job.lastFailReason =
         error instanceof Error ? error.message : "Unknown error";
-      this._logger.warn(`Job failed (attempt ${attempts}/${maxRetries})`, {
+      this.logger.warn(`Job failed (attempt ${attempts}/${maxRetries})`, {
         job,
       });
     } finally {
@@ -35,12 +37,13 @@ export async function processNextJob(
   job.lockedAt = null;
 
   if (job.repeat === null) {
-    this._jobs.splice(this._jobs.indexOf(job), 1);
+    await this.store.removeJob(job.id);
   }
 
   if (!success) {
-    this._logger.error(
+    this.logger.error(
       `Job failed after ${maxRetries} immediate attempts, rescheduling.`
     );
   }
+  await this.store.updateJob(job.id, { ...job });
 }
