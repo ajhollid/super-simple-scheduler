@@ -12,17 +12,19 @@ import { getJobs as getJobsFn } from "./get-jobs.js";
 import { removeJob as removeJobFn } from "./remove-job.js";
 import { updateJob as updateJobFn } from "./update-job.js";
 import { addTemplate as addTemplateFn } from "./add-template.js";
+import { InMemoryStore } from "../store/inMemoryStore.js";
 
-export class Scheduler implements IScheduler {
+class Scheduler implements IScheduler {
   public processEvery: number;
   public intervalId: NodeJS.Timeout | null;
   public store: IStore;
   public logger: Logger;
 
-  constructor(store: IStore, logLevel = "info", dev = false) {
+  constructor(storeType: "inMemory" | "mongo", logLevel = "info", dev = false) {
     this.processEvery = 1000;
     this.intervalId = null;
-    this.store = store;
+    this.store =
+      storeType === "inMemory" ? new InMemoryStore() : new InMemoryStore();
     this.logger = new Logger(logLevel, dev);
   }
 
@@ -87,3 +89,5 @@ export class Scheduler implements IScheduler {
     return addTemplateFn;
   }
 }
+
+export default Scheduler;
