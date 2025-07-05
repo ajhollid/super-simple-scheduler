@@ -1,0 +1,104 @@
+import { IJob } from "../../job/job.js";
+import { IStore } from "../store.js";
+import mongoose from "mongoose";
+import { Logger } from "../../utils/logger.js";
+import { JobModel } from "../../job/job.js";
+
+type MongoStoreOptions = {
+  uri: string;
+};
+
+export class MongoStore implements IStore {
+  private uri: string;
+  private logger: Logger;
+
+  constructor(options: MongoStoreOptions, logger: Logger) {
+    this.uri = options.uri;
+    this.logger = logger;
+  }
+
+  async init(): Promise<boolean> {
+    try {
+      await mongoose.connect(this.uri);
+    } catch (error) {
+      this.logger.error("Failed to connect to MongoDB", { error });
+      return false;
+    }
+    this.logger.info("Connected to MongoDB");
+    return true;
+  }
+
+  async addJob(job: IJob): Promise<boolean> {
+    try {
+      const newJob = new JobModel(job);
+      await newJob.save();
+      return true;
+    } catch (error) {
+      this.logger.error("Failed to add job", { error });
+      return false;
+    }
+  }
+
+  async getJob(id: string | number): Promise<IJob | null> {
+    try {
+      const job = await JobModel.findById(id);
+      return job ? job.toObject() : null;
+    } catch (error) {
+      this.logger.error("Failed to get job", { error });
+      return null;
+    }
+  }
+
+  async removeJob(id: string | number): Promise<boolean> {
+    try {
+      await JobModel.findByIdAndDelete(id);
+      return true;
+    } catch (error) {
+      this.logger.error("Failed to remove job", { error });
+      return false;
+    }
+  }
+
+  async updateJob(id: string, updates: Partial<IJob>): Promise<boolean> {
+    try {
+      await JobModel.findByIdAndUpdate(id, updates);
+      return true;
+    } catch (error) {
+      this.logger.error("Failed to update job", { error });
+      return false;
+    }
+  }
+
+  async getJobs(): Promise<IJob[]> {
+    try {
+      const jobs = await JobModel.find();
+      return jobs.map((job) => job.toObject());
+    } catch (error) {
+      this.logger.error("Failed to get jobs", { error });
+      return [];
+    }
+  }
+
+  async addTemplate(
+    name: string,
+    template: (data?: any) => void | Promise<void>
+  ): Promise<boolean> {
+    return true;
+  }
+
+  async getTemplate(
+    name: string
+  ): Promise<((data?: any) => void | Promise<void>) | null> {
+    return null;
+  }
+
+  async flushJobs(): Promise<boolean> {
+    try {
+      await JobModel.deleteMany({});
+      return true;
+    } catch (error) {
+      this.logger.error("Failed to flush jobs", { error });
+      return false;
+    }
+  }
+}

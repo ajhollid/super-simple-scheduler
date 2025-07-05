@@ -1,40 +1,60 @@
 import Scheduler from "./src/scheduler/index.js";
-import { InMemoryStore } from "./src/store/inMemoryStore.js";
-const scheduler = new Scheduler("inMemory");
-scheduler.addTemplate("test", (data) => {
-  const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
 
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      console.log("running job");
-      resolve();
-      // reject(new Error("test error"));
-    }, delay);
+const doStuff = async () => {
+  const scheduler = new Scheduler({
+    storeType: "mongo",
+    logLevel: "info",
+    dev: false,
+    processEvery: 1000,
   });
-});
-scheduler.addTemplate("test2", (data) => {
-  console.log("running job 2");
-});
+  scheduler.addTemplate("test", (data) => {
+    const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
 
-for (let i = 0; i < 1; i++) {
-  scheduler.addJob({
-    id: `test-${i}`,
-    template: "test",
-    repeat: 2000,
-    data: `test ${i}`,
-    active: i % 2 === 0,
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        console.log("running job");
+        resolve();
+        // reject(new Error("test error"));
+      }, delay);
+    });
   });
-}
+  scheduler.addTemplate("test2", (data) => {
+    console.log("running job 2");
+  });
+  await scheduler.start();
 
-for (let i = 0; i < 1; i++) {
-  scheduler.addJob({
-    id: `test2-${i}`,
-    template: "test2",
-    data: `test ${i}`,
-    active: i % 2 === 0,
-  });
-}
-scheduler.start();
+  for (let i = 0; i < 1; i++) {
+    await scheduler.addJob({
+      id: `test-${i}`,
+      template: "test",
+      repeat: 2000,
+      data: `test ${i}`,
+      active: i % 2 === 0,
+    });
+  }
+
+  for (let i = 0; i < 1; i++) {
+    await scheduler.addJob({
+      id: `test2-${i}`,
+      template: "test2",
+      data: `test ${i}`,
+      active: i % 2 === 0,
+    });
+  }
+  await scheduler.pauseJob("test-0");
+  let job = await scheduler.getJob("test-0");
+  console.log(job?.active);
+  await scheduler.resumeJob("test-0");
+  job = await scheduler.getJob("test-0");
+  let jobs = await scheduler.getJobs();
+  console.log(jobs);
+
+  await scheduler.flushJobs();
+  jobs = await scheduler.getJobs();
+  console.log(jobs);
+};
+
+doStuff();
 
 // setInterval(() => {
 //   const mem = process.memoryUsage();

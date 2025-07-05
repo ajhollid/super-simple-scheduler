@@ -15,7 +15,15 @@ import { addTemplate as addTemplateFn } from "./add-template.js";
 import { flushJobs as flushJobsFn } from "./flush-jobs.js";
 import { pauseJob as pauseJobFn } from "./pause-job.js";
 import { resumeJob as resumeJobFn } from "./resume-job.js";
-import { InMemoryStore } from "../store/inMemoryStore.js";
+import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
+import { MongoStore } from "../store/mongo/mongoStore.js";
+
+type SchedulerOptions = {
+  storeType: "inMemory" | "mongo" | "redis";
+  logLevel?: "info" | "debug" | "warn" | "error";
+  dev?: boolean;
+  processEvery?: number;
+};
 
 class Scheduler implements IScheduler {
   public processEvery: number;
@@ -23,15 +31,29 @@ class Scheduler implements IScheduler {
   public store: IStore;
   public logger: Logger;
 
-  constructor(storeType: "inMemory" | "mongo", logLevel = "info", dev = false) {
-    this.processEvery = 1000;
+  constructor(options: SchedulerOptions) {
+    const {
+      storeType = "inMemory",
+      logLevel = "info",
+      dev = false,
+      processEvery = 1000,
+    } = options;
+
+    this.processEvery = processEvery;
     this.intervalId = null;
-    this.store =
-      storeType === "inMemory" ? new InMemoryStore() : new InMemoryStore();
     this.logger = new Logger(logLevel, dev);
+    this.store =
+      storeType === "inMemory"
+        ? new InMemoryStore()
+        : storeType === "mongo"
+        ? new MongoStore(
+            { uri: "mongodb://localhost:27017/uptime_db" },
+            this.logger
+          )
+        : new InMemoryStore(); // TODO switch
   }
 
-  get start(): () => boolean {
+  get start(): () => Promise<boolean> {
     return startFn;
   }
 

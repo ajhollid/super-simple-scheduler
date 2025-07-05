@@ -1,10 +1,16 @@
 import { IScheduler } from "./scheduler.js";
 
-export function start(this: IScheduler) {
+export async function start(this: IScheduler) {
   this.logger.info("Scheduler started");
 
   if (this.intervalId) {
     clearInterval(this.intervalId);
+  }
+
+  const initResult = await this.store.init();
+
+  if (!initResult) {
+    return false;
   }
 
   this.intervalId = setInterval(() => {

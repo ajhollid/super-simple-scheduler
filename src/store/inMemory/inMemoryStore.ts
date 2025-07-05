@@ -1,9 +1,13 @@
-import { IStore } from "./store.js";
-import { IJob } from "../job/job.js";
+import { IStore } from "../store.js";
+import { IJob } from "../../job/job.js";
 
 export class InMemoryStore implements IStore {
   private jobs = new Map<string | number, IJob>();
   private templates = new Map<string, (data?: any) => void | Promise<void>>();
+
+  async init(): Promise<boolean> {
+    return true;
+  }
 
   async addJob(job: IJob): Promise<boolean> {
     this.jobs.set(job.id, job);

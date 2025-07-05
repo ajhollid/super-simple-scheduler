@@ -22,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "human-interval": "2.0.1",
+    "mongoose": "8.16.1",
     "uuid": "11.1.0",
     "winston": "3.17.0"
   },

@@ -7,7 +7,7 @@ export interface IScheduler {
   intervalId: NodeJS.Timeout | null;
   store: IStore;
   logger: Logger;
-  start: () => boolean;
+  start: () => Promise<boolean>;
   stop: () => boolean;
   processJobs(): Promise<void>;
   processNextJob: (
