@@ -45,4 +45,9 @@ export class InMemoryStore implements IStore {
   ): Promise<((data?: any) => void | Promise<void>) | null> {
     return this.templates.get(name) ?? null;
   }
+
+  async flushJobs(): Promise<boolean> {
+    this.jobs.clear();
+    return true;
+  }
 }

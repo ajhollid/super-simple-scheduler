@@ -41,4 +41,6 @@ export interface IScheduler {
     name: string,
     template: (data?: any) => void | Promise<void>
   ): Promise<boolean>;
+
+  flushJobs(): Promise<boolean>;
 }

@@ -1,6 +1,6 @@
-import { Scheduler } from "./src/scheduler/index.js";
+import Scheduler from "./src/scheduler/index.js";
 import { InMemoryStore } from "./src/store/inMemoryStore.js";
-const scheduler = new Scheduler(new InMemoryStore());
+const scheduler = new Scheduler("inMemory");
 scheduler.addTemplate("test", (data) => {
   const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
 

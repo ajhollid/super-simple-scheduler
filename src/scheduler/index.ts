@@ -13,6 +13,7 @@ import { removeJob as removeJobFn } from "./remove-job.js";
 import { updateJob as updateJobFn } from "./update-job.js";
 import { addTemplate as addTemplateFn } from "./add-template.js";
 import { InMemoryStore } from "../store/inMemoryStore.js";
+import { flushJobs as flushJobsFn } from "./flush-jobs.js";
 
 class Scheduler implements IScheduler {
   public processEvery: number;
@@ -80,6 +81,10 @@ class Scheduler implements IScheduler {
     updates: Partial<IJob>
   ) => Promise<boolean> {
     return updateJobFn;
+  }
+
+  get flushJobs(): () => Promise<boolean> {
+    return flushJobsFn;
   }
 
   get addTemplate(): (

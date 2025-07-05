@@ -7,6 +7,7 @@ export interface IStore {
   updateJob(id: string | number, updates: Partial<IJob>): Promise<boolean>;
   getJob(id: string | number): Promise<IJob | null>;
   getJobs(): Promise<IJob[]>;
+  flushJobs(): Promise<boolean>;
   addTemplate(
     name: string,
     template: (data?: any) => void | Promise<void>
