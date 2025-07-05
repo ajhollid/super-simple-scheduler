@@ -12,8 +12,10 @@ import { getJobs as getJobsFn } from "./get-jobs.js";
 import { removeJob as removeJobFn } from "./remove-job.js";
 import { updateJob as updateJobFn } from "./update-job.js";
 import { addTemplate as addTemplateFn } from "./add-template.js";
-import { InMemoryStore } from "../store/inMemoryStore.js";
 import { flushJobs as flushJobsFn } from "./flush-jobs.js";
+import { pauseJob as pauseJobFn } from "./pause-job.js";
+import { resumeJob as resumeJobFn } from "./resume-job.js";
+import { InMemoryStore } from "../store/inMemoryStore.js";
 
 class Scheduler implements IScheduler {
   public processEvery: number;
@@ -62,6 +64,14 @@ class Scheduler implements IScheduler {
     active?: boolean;
   }) => Promise<boolean> {
     return addJobFn;
+  }
+
+  get pauseJob(): (id: string | number) => Promise<boolean> {
+    return pauseJobFn;
+  }
+
+  get resumeJob(): (id: string | number) => Promise<boolean> {
+    return resumeJobFn;
   }
 
   get getJob(): (id: string | number) => Promise<IJob | null> {

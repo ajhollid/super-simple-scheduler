@@ -29,6 +29,10 @@ export interface IScheduler {
     active?: boolean;
   }) => Promise<boolean>;
 
+  pauseJob(id: string | number): Promise<boolean>;
+
+  resumeJob(id: string | number): Promise<boolean>;
+
   getJob(id: string | number): Promise<IJob | null>;
 
   getJobs(): Promise<IJob[]>;
@@ -37,10 +41,9 @@ export interface IScheduler {
 
   updateJob(id: string, updates: Partial<IJob>): Promise<boolean>;
 
+  flushJobs(): Promise<boolean>;
   addTemplate(
     name: string,
     template: (data?: any) => void | Promise<void>
   ): Promise<boolean>;
-
-  flushJobs(): Promise<boolean>;
 }
