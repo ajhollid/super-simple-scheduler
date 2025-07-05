@@ -4,7 +4,7 @@ const doStuff = async () => {
   const scheduler = new Scheduler({
     storeType: "mongo",
     logLevel: "info",
-    dev: false,
+    dev: true,
     processEvery: 1000,
   });
   scheduler.addTemplate("test", (data) => {
@@ -58,7 +58,6 @@ doStuff();
 
 // setInterval(() => {
 //   const mem = process.memoryUsage();
-//   const rss = (mem.rss / 1024 / 1024).toFixed(1);
 //   const heap = (mem.heapUsed / 1024 / 1024).toFixed(1);
 //   console.log(`[Monitor] Memory: RSS ${rss}MB | Heap ${heap}MB`);
 // }, 2000);

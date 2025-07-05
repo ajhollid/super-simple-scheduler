@@ -20,7 +20,7 @@ import { MongoStore } from "../store/mongo/mongoStore.js";
 
 type SchedulerOptions = {
   storeType: "inMemory" | "mongo" | "redis";
-  logLevel?: "info" | "debug" | "warn" | "error";
+  logLevel?: "none" | "info" | "debug" | "warn" | "error";
   dev?: boolean;
   processEvery?: number;
 };

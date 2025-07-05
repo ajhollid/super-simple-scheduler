@@ -24,7 +24,7 @@ export async function addJob(
   const existingJob = await this.store.getJob(id);
 
   if (existingJob) {
-    this.logger.warn(`Job with id ${id} already exists`);
+    this.logger.info(`Job with id ${id} already exists`);
     return false;
   }
 

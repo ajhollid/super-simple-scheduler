@@ -11,6 +11,7 @@ type MongoStoreOptions = {
 export class MongoStore implements IStore {
   private uri: string;
   private logger: Logger;
+  private templates = new Map<string, (data?: any) => void | Promise<void>>();
 
   constructor(options: MongoStoreOptions, logger: Logger) {
     this.uri = options.uri;
@@ -41,7 +42,7 @@ export class MongoStore implements IStore {
 
   async getJob(id: string | number): Promise<IJob | null> {
     try {
-      const job = await JobModel.findById(id);
+      const job = await JobModel.findOne({ id });
       return job ? job.toObject() : null;
     } catch (error) {
       this.logger.error("Failed to get job", { error });
@@ -51,7 +52,7 @@ export class MongoStore implements IStore {
 
   async removeJob(id: string | number): Promise<boolean> {
     try {
-      await JobModel.findByIdAndDelete(id);
+      await JobModel.findOneAndDelete({ id });
       return true;
     } catch (error) {
       this.logger.error("Failed to remove job", { error });
@@ -61,7 +62,7 @@ export class MongoStore implements IStore {
 
   async updateJob(id: string, updates: Partial<IJob>): Promise<boolean> {
     try {
-      await JobModel.findByIdAndUpdate(id, updates);
+      await JobModel.findOneAndUpdate({ id }, updates);
       return true;
     } catch (error) {
       this.logger.error("Failed to update job", { error });
@@ -83,13 +84,14 @@ export class MongoStore implements IStore {
     name: string,
     template: (data?: any) => void | Promise<void>
   ): Promise<boolean> {
+    this.templates.set(name, template);
     return true;
   }
 
   async getTemplate(
     name: string
   ): Promise<((data?: any) => void | Promise<void>) | null> {
-    return null;
+    return this.templates.get(name) ?? null;
   }
 
   async flushJobs(): Promise<boolean> {

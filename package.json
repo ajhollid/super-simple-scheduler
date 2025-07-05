@@ -11,7 +11,8 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "dev": "npx nodemon index.ts"
+    "dev": "npx nodemon index.ts",
+    "test": "jest"
   },
   "keywords": [
     "scheduler",
@@ -27,8 +28,12 @@
     "winston": "3.17.0"
   },
   "devDependencies": {
+    "@jest/globals": "30.0.4",
+    "@types/jest": "30.0.0",
     "@types/node": "24.0.4",
+    "jest": "30.0.4",
     "nodemon": "3.1.10",
+    "ts-jest": "29.4.0",
     "ts-node": "10.9.2",
     "typescript": "5.8.3"
   }
