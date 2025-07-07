@@ -17,11 +17,10 @@ export async function addJob(
     active?: boolean;
   }
 ) {
-  if (!id) {
-    this.logger.warn(`Job id is required`);
-    return false;
-  }
-  const existingJob = await this.store.getJob(id);
+  let jobId = id;
+  if (!jobId) jobId = uuidv4();
+
+  const existingJob = await this.store.getJob(jobId);
 
   if (existingJob) {
     this.logger.info(`Job with id ${id} already exists`);
@@ -29,7 +28,7 @@ export async function addJob(
   }
 
   await this.store.addJob({
-    id: id ?? uuidv4(),
+    id: jobId,
     template: template,
     data: data,
     repeat: repeat,

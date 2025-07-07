@@ -42,6 +42,7 @@ export interface IScheduler {
   updateJob(id: string, updates: Partial<IJob>): Promise<boolean>;
 
   flushJobs(): Promise<boolean>;
+
   addTemplate(
     name: string,
     template: (data?: any) => void | Promise<void>

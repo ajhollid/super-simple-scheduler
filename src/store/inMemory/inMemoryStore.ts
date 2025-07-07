@@ -40,8 +40,8 @@ export class InMemoryStore implements IStore {
     name: string,
     template: (data?: any) => void | Promise<void>
   ): Promise<boolean> {
-    this.templates.set(name, template);
-    return true;
+    const result = this.templates.set(name, template);
+    return result.has(name);
   }
 
   async getTemplate(

@@ -7,7 +7,5 @@ export async function removeJob(this: IScheduler, id: string | number) {
     return false;
   }
 
-  await this.store.removeJob(id);
-
-  return true;
+  return this.store.removeJob(id);
 }

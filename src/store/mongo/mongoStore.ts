@@ -52,8 +52,8 @@ export class MongoStore implements IStore {
 
   async removeJob(id: string | number): Promise<boolean> {
     try {
-      await JobModel.findOneAndDelete({ id });
-      return true;
+      const result = await JobModel.findOneAndDelete({ id });
+      return result ? true : false;
     } catch (error) {
       this.logger.error("Failed to remove job", { error });
       return false;
