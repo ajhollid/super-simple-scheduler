@@ -1,6 +1,6 @@
 # Super Simple Scheduler
 
-A lightweight and easy-to-use job scheduler for Node.js with support for repeated jobs and retries.
+A lightweight and easy-to-use job scheduler for Node.js with support for repeated jobs, retries, and multiple storage backends.
 
 ## Features
 
@@ -9,7 +9,10 @@ A lightweight and easy-to-use job scheduler for Node.js with support for repeate
 - Simple API to add job templates and jobs
 - Written in TypeScript with type definitions
 - Job pausing, resuming, and removal
-- Comprehensive logging
+- Comprehensive logging with Winston
+- Multiple storage backends (In-Memory, MongoDB)
+- Async/await API throughout
+- ES Module support
 
 ## Installation
 
@@ -24,25 +27,27 @@ import Scheduler from "super-simple-scheduler";
 
 // Create a scheduler instance
 const scheduler = new Scheduler({
+  storeType: "inMemory", // or "mongo"
   logLevel: "info",
   dev: false,
+  processEvery: 1000, // Process jobs every 1 second
 });
 
 // Add a job template
-scheduler.addTemplate("sendEmail", async (data) => {
+await scheduler.addTemplate("sendEmail", async (data) => {
   // Your job logic here
   console.log("Sending email to:", data.recipient);
 });
 
 // Add a job
-scheduler.addJob({
+await scheduler.addJob({
   template: "sendEmail",
   repeat: 60000, // Run every minute
   data: { recipient: "user@example.com" },
 });
 
 // Start the scheduler
-scheduler.start();
+await scheduler.start();
 ```
 
 ## API Reference
@@ -54,38 +59,44 @@ The main scheduler class that manages job execution.
 #### Constructor
 
 ```typescript
-new Scheduler(options?: {
-  logLevel?: string;
+new Scheduler(options: {
+  storeType: "inMemory" | "mongo" | "redis";
+  logLevel?: "none" | "info" | "debug" | "warn" | "error";
   dev?: boolean;
+  processEvery?: number;
 })
 ```
 
 **Parameters:**
 
-- `logLevel` (optional): Logging level ('debug', 'info', 'warn', 'error'). Default: 'info'
+- `storeType`: Storage backend to use ('inMemory', 'mongo', 'redis'). Default: 'inMemory'
+- `logLevel` (optional): Logging level ('none', 'debug', 'info', 'warn', 'error'). Default: 'info'
 - `dev` (optional): Development mode flag. Default: false
+- `processEvery` (optional): Interval in milliseconds to process jobs. Default: 1000
 
 **Example:**
 
 ```typescript
 const scheduler = new Scheduler({
+  storeType: "mongo",
   logLevel: "debug",
   dev: true,
+  processEvery: 5000, // Process every 5 seconds
 });
 ```
 
 #### Methods
 
-##### `start(): boolean`
+##### `start(): Promise<boolean>`
 
 Starts the scheduler and begins processing jobs at the configured interval.
 
-**Returns:** `true` if started successfully
+**Returns:** `Promise<boolean>` - `true` if started successfully
 
 **Example:**
 
 ```typescript
-const success = scheduler.start();
+const success = await scheduler.start();
 if (success) {
   console.log("Scheduler started");
 }
@@ -95,7 +106,7 @@ if (success) {
 
 Stops the scheduler and clears the processing interval.
 
-**Returns:** `true` if stopped successfully
+**Returns:** `boolean` - `true` if stopped successfully
 
 **Example:**
 
@@ -106,7 +117,7 @@ if (success) {
 }
 ```
 
-##### `addTemplate(name: string, template: Function): boolean`
+##### `addTemplate(name: string, template: Function): Promise<boolean>`
 
 Registers a job template function that can be referenced by jobs.
 
@@ -115,23 +126,23 @@ Registers a job template function that can be referenced by jobs.
 - `name`: Unique identifier for the template
 - `template`: Function to execute when the job runs. Can be async or sync.
 
-**Returns:** `true` if template was added successfully
+**Returns:** `Promise<boolean>` - `true` if template was added successfully
 
 **Example:**
 
 ```typescript
-scheduler.addTemplate("processData", async (data) => {
+await scheduler.addTemplate("processData", async (data) => {
   // Process the data
   await processUserData(data);
 });
 
-scheduler.addTemplate("sendNotification", (data) => {
+await scheduler.addTemplate("sendNotification", (data) => {
   // Send notification
   sendPushNotification(data.userId, data.message);
 });
 ```
 
-##### `addJob(options): boolean`
+##### `addJob(options): Promise<boolean>`
 
 Adds a new job to the scheduler.
 
@@ -143,19 +154,19 @@ Adds a new job to the scheduler.
 - `options.data` (optional): Data to pass to the job template function
 - `options.active` (optional): Whether the job should be active. Default: true
 
-**Returns:** `true` if job was added successfully, `false` if job with same ID already exists
+**Returns:** `Promise<boolean>` - `true` if job was added successfully, `false` if job with same ID already exists
 
 **Example:**
 
 ```typescript
 // One-time job
-scheduler.addJob({
+await scheduler.addJob({
   template: "sendWelcomeEmail",
   data: { userId: "123", email: "user@example.com" },
 });
 
 // Repeating job
-scheduler.addJob({
+await scheduler.addJob({
   id: "daily-cleanup",
   template: "cleanupDatabase",
   repeat: 24 * 60 * 60 * 1000, // 24 hours
@@ -163,14 +174,14 @@ scheduler.addJob({
 });
 
 // Inactive job (will be paused)
-scheduler.addJob({
+await scheduler.addJob({
   template: "maintenance",
   repeat: 60 * 60 * 1000, // 1 hour
   active: false,
 });
 ```
 
-##### `pauseJob(id: string | number): boolean`
+##### `pauseJob(id: string | number): Promise<boolean>`
 
 Pauses a job, preventing it from executing.
 
@@ -178,18 +189,18 @@ Pauses a job, preventing it from executing.
 
 - `id`: Job identifier
 
-**Returns:** `true` if job was paused successfully, `false` if job not found
+**Returns:** `Promise<boolean>` - `true` if job was paused successfully, `false` if job not found
 
 **Example:**
 
 ```typescript
-const success = scheduler.pauseJob("daily-cleanup");
+const success = await scheduler.pauseJob("daily-cleanup");
 if (success) {
   console.log("Job paused");
 }
 ```
 
-##### `resumeJob(id: string | number): boolean`
+##### `resumeJob(id: string | number): Promise<boolean>`
 
 Resumes a paused job, allowing it to execute again.
 
@@ -197,18 +208,18 @@ Resumes a paused job, allowing it to execute again.
 
 - `id`: Job identifier
 
-**Returns:** `true` if job was resumed successfully, `false` if job not found
+**Returns:** `Promise<boolean>` - `true` if job was resumed successfully, `false` if job not found
 
 **Example:**
 
 ```typescript
-const success = scheduler.resumeJob("daily-cleanup");
+const success = await scheduler.resumeJob("daily-cleanup");
 if (success) {
   console.log("Job resumed");
 }
 ```
 
-##### `removeJob(id: string | number): boolean`
+##### `removeJob(id: string | number): Promise<boolean>`
 
 Removes a job from the scheduler.
 
@@ -216,27 +227,48 @@ Removes a job from the scheduler.
 
 - `id`: Job identifier
 
-**Returns:** `true` if job was removed successfully, `false` if job not found
+**Returns:** `Promise<boolean>` - `true` if job was removed successfully, `false` if job not found
 
 **Example:**
 
 ```typescript
-const success = scheduler.removeJob("daily-cleanup");
+const success = await scheduler.removeJob("daily-cleanup");
 if (success) {
   console.log("Job removed");
 }
 ```
 
-##### `getJobs(): IJob[]`
+##### `getJob(id: string | number): Promise<IJob | null>`
 
-Returns an array of all jobs in the scheduler.
+Returns a specific job by ID.
 
-**Returns:** Array of job objects
+**Parameters:**
+
+- `id`: Job identifier
+
+**Returns:** `Promise<IJob | null>` - Job object or null if not found
 
 **Example:**
 
 ```typescript
-const jobs = scheduler.getJobs();
+const job = await scheduler.getJob("daily-cleanup");
+if (job) {
+  console.log(
+    `Job ${job.id}: ${job.template} (${job.active ? "active" : "paused"})`
+  );
+}
+```
+
+##### `getJobs(): Promise<IJob[]>`
+
+Returns an array of all jobs in the scheduler.
+
+**Returns:** `Promise<IJob[]>` - Array of job objects
+
+**Example:**
+
+```typescript
+const jobs = await scheduler.getJobs();
 console.log(`Scheduler has ${jobs.length} jobs`);
 jobs.forEach((job) => {
   console.log(
@@ -245,38 +277,41 @@ jobs.forEach((job) => {
 });
 ```
 
-##### `flushJobs(): boolean`
+##### `flushJobs(): Promise<boolean>`
 
 Removes all jobs from the scheduler.
 
-**Returns:** `true` if jobs were flushed successfully
+**Returns:** `Promise<boolean>` - `true` if jobs were flushed successfully
 
 **Example:**
 
 ```typescript
-const success = scheduler.flushJobs();
+const success = await scheduler.flushJobs();
 if (success) {
   console.log("All jobs removed");
 }
 ```
 
-##### `updateJob(id: string | number, repeat: number): boolean`
+##### `updateJob(id: string | number, updates: Partial<IJob>): Promise<boolean>`
 
-Updates the repeat interval for a job.
+Updates a job with new properties.
 
 **Parameters:**
 
 - `id`: Job identifier
-- `repeat`: New interval in milliseconds
+- `updates`: Partial job object with properties to update
 
-**Returns:** `true` if job was updated successfully, `false` if job not found
+**Returns:** `Promise<boolean>` - `true` if job was updated successfully, `false` if job not found
 
 **Example:**
 
 ```typescript
-const success = scheduler.updateJob("daily-cleanup", 12 * 60 * 60 * 1000); // 12 hours
+const success = await scheduler.updateJob("daily-cleanup", {
+  repeat: 12 * 60 * 60 * 1000, // 12 hours
+  data: { newData: "updated" },
+});
 if (success) {
-  console.log("Job interval updated");
+  console.log("Job updated");
 }
 ```
 
@@ -302,6 +337,56 @@ interface IJob {
 }
 ```
 
+## Storage Backends
+
+The scheduler supports multiple storage backends:
+
+### In-Memory Store (Default)
+
+```typescript
+const scheduler = new Scheduler({
+  storeType: "inMemory",
+});
+```
+
+**Pros:**
+
+- Fast and lightweight
+- No external dependencies
+- Perfect for development and testing
+
+**Cons:**
+
+- Jobs are lost on process restart
+- Not suitable for production with multiple instances
+
+### MongoDB Store
+
+```typescript
+const scheduler = new Scheduler({
+  storeType: "mongo",
+  logLevel: "info",
+});
+```
+
+**Pros:**
+
+- Persistent storage
+- Survives process restarts
+- Suitable for production
+- Supports multiple scheduler instances
+
+**Cons:**
+
+- Requires MongoDB instance
+- Additional dependency (Mongoose)
+
+**Note:** The MongoDB store connects to `mongodb://localhost:27017/uptime_db` by default. You can modify the connection URI in the source code.
+
+### Redis Store (Planned)
+
+Redis support is planned for future releases.
+
 ## Configuration
 
 ### Processing Interval
@@ -309,8 +394,9 @@ interface IJob {
 The scheduler processes jobs at regular intervals. The default interval is 1 second, but you can modify it:
 
 ```typescript
-const scheduler = new Scheduler();
-scheduler.processEvery = 5000; // Process every 5 seconds
+const scheduler = new Scheduler({
+  processEvery: 5000, // Process every 5 seconds
+});
 ```
 
 ### Retry Behavior
@@ -318,7 +404,7 @@ scheduler.processEvery = 5000; // Process every 5 seconds
 Jobs automatically retry on failure with a configurable maximum number of attempts:
 
 ```typescript
-scheduler.addJob({
+await scheduler.addJob({
   template: "unreliableTask",
   repeat: 60000,
   maxRetries: 5, // Will retry up to 5 times on failure
@@ -331,37 +417,40 @@ scheduler.addJob({
 The scheduler includes comprehensive error handling:
 
 - Failed jobs are automatically retried up to the configured `maxRetries`
-- All errors are logged with detailed information
+- All errors are logged with detailed information using Winston
 - Jobs that fail all retry attempts are logged as errors
 - One-time jobs (`repeat: null`) are removed after execution regardless of success/failure
 
 ## Logging
 
-The scheduler uses a built-in logger with configurable levels:
+The scheduler uses Winston for logging with configurable levels:
 
 ```typescript
 const scheduler = new Scheduler({
-  logLevel: "debug", // 'debug', 'info', 'warn', 'error'
+  logLevel: "debug", // 'none', 'debug', 'info', 'warn', 'error'
   dev: true, // Enhanced logging for development
 });
 ```
 
 ## Examples
 
-### Email Scheduler
+### Email Scheduler with MongoDB
 
 ```typescript
 import Scheduler from "super-simple-scheduler";
 
-const scheduler = new Scheduler();
+const scheduler = new Scheduler({
+  storeType: "mongo",
+  logLevel: "info",
+});
 
 // Email template
-scheduler.addTemplate("sendEmail", async (data) => {
+await scheduler.addTemplate("sendEmail", async (data) => {
   await sendEmail(data.to, data.subject, data.body);
 });
 
 // Daily digest
-scheduler.addJob({
+await scheduler.addJob({
   id: "daily-digest",
   template: "sendEmail",
   repeat: 24 * 60 * 60 * 1000,
@@ -372,41 +461,108 @@ scheduler.addJob({
   },
 });
 
-scheduler.start();
+await scheduler.start();
 ```
 
 ### Data Processing Pipeline
 
 ```typescript
-const scheduler = new Scheduler({ logLevel: "debug" });
+const scheduler = new Scheduler({
+  storeType: "inMemory",
+  logLevel: "debug",
+});
 
 // Data processing templates
-scheduler.addTemplate("fetchData", async (data) => {
+await scheduler.addTemplate("fetchData", async (data) => {
   const rawData = await fetchFromAPI(data.endpoint);
   await saveToDatabase(rawData);
 });
 
-scheduler.addTemplate("processData", async (data) => {
+await scheduler.addTemplate("processData", async (data) => {
   const rawData = await getFromDatabase();
   const processed = await transformData(rawData);
   await saveProcessedData(processed);
 });
 
 // Schedule jobs
-scheduler.addJob({
+await scheduler.addJob({
   id: "fetch-hourly",
   template: "fetchData",
   repeat: 60 * 60 * 1000,
   data: { endpoint: "/api/data" },
 });
 
-scheduler.addJob({
+await scheduler.addJob({
   id: "process-daily",
   template: "processData",
   repeat: 24 * 60 * 60 * 1000,
 });
 
-scheduler.start();
+await scheduler.start();
+```
+
+### Job Management Example
+
+```typescript
+const scheduler = new Scheduler({ storeType: "inMemory" });
+
+// Add a job
+await scheduler.addJob({
+  id: "test-job",
+  template: "testTemplate",
+  repeat: 5000,
+  data: { message: "Hello World" },
+});
+
+// Pause the job
+await scheduler.pauseJob("test-job");
+
+// Check job status
+const job = await scheduler.getJob("test-job");
+console.log(job?.active); // false
+
+// Resume the job
+await scheduler.resumeJob("test-job");
+
+// Get all jobs
+const allJobs = await scheduler.getJobs();
+console.log(`Total jobs: ${allJobs.length}`);
+
+// Update job
+await scheduler.updateJob("test-job", {
+  repeat: 10000, // Change to 10 seconds
+  data: { message: "Updated message" },
+});
+
+// Remove job
+await scheduler.removeJob("test-job");
+```
+
+## Development
+
+### Building
+
+```bash
+npm run build
+```
+
+### Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test-coverage
+
+# Run specific store tests
+npm run test-store
+```
+
+### Development Mode
+
+```bash
+npm run dev
 ```
 
 ## License
