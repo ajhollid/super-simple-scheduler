@@ -54,7 +54,7 @@ class Scheduler implements IScheduler {
     return startFn;
   }
 
-  get stop(): () => boolean {
+  get stop(): () => Promise<boolean> {
     return stopFn;
   }
 

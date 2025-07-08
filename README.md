@@ -64,6 +64,7 @@ new Scheduler(options: {
   logLevel?: "none" | "info" | "debug" | "warn" | "error";
   dev?: boolean;
   processEvery?: number;
+  dbUri?: string;
 })
 ```
 
@@ -73,12 +74,14 @@ new Scheduler(options: {
 - `logLevel` (optional): Logging level ('none', 'debug', 'info', 'warn', 'error'). Default: 'info'
 - `dev` (optional): Development mode flag. Default: false
 - `processEvery` (optional): Interval in milliseconds to process jobs. Default: 1000
+- `dbUri` (optional): Database connection URI for MongoDB. Required when `storeType` is 'mongo'
 
 **Example:**
 
 ```typescript
 const scheduler = new Scheduler({
   storeType: "mongo",
+  dbUri: "mongodb://localhost:27017/myapp",
   logLevel: "debug",
   dev: true,
   processEvery: 5000, // Process every 5 seconds
@@ -102,11 +105,11 @@ if (success) {
 }
 ```
 
-##### `stop(): boolean`
+##### `stop(): Promise<boolean>`
 
 Stops the scheduler and clears the processing interval.
 
-**Returns:** `boolean` - `true` if stopped successfully
+**Returns:** `Promise<boolean>` - `true` if stopped successfully
 
 **Example:**
 
@@ -154,7 +157,9 @@ Adds a new job to the scheduler.
 - `options.data` (optional): Data to pass to the job template function
 - `options.active` (optional): Whether the job should be active. Default: true
 
-**Returns:** `Promise<boolean>` - `true` if job was added successfully, `false` if job with same ID already exists
+**Returns:** `Promise<boolean>` - `true` if job was added or updated successfully
+
+**Note:** If a job with the same ID already exists, it will be updated with the new properties instead of failing.
 
 **Example:**
 
@@ -381,7 +386,7 @@ const scheduler = new Scheduler({
 - Requires MongoDB instance
 - Additional dependency (Mongoose)
 
-**Note:** The MongoDB store connects to `mongodb://localhost:27017/uptime_db` by default. You can modify the connection URI in the source code.
+**Note:** You must provide a `dbUri` when using the MongoDB store. The connection URI should point to your MongoDB instance and include the database name.
 
 ### Redis Store (Planned)
 
@@ -441,6 +446,7 @@ import Scheduler from "super-simple-scheduler";
 
 const scheduler = new Scheduler({
   storeType: "mongo",
+  dbUri: "mongodb://localhost:27017/email_scheduler",
   logLevel: "info",
 });
 
@@ -514,6 +520,14 @@ await scheduler.addJob({
   data: { message: "Hello World" },
 });
 
+// Update the same job (will update existing job instead of failing)
+await scheduler.addJob({
+  id: "test-job",
+  template: "testTemplate",
+  repeat: 10000, // Changed from 5000 to 10000
+  data: { message: "Updated message" },
+});
+
 // Pause the job
 await scheduler.pauseJob("test-job");
 
@@ -554,9 +568,6 @@ npm test
 
 # Run tests with coverage
 npm run test-coverage
-
-# Run specific store tests
-npm run test-store
 ```
 
 ### Development Mode

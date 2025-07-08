@@ -16,7 +16,7 @@ export interface IScheduler {
   store: IStore;
   logger: Logger;
   start: () => Promise<boolean>;
-  stop: () => boolean;
+  stop: () => Promise<boolean>;
   processJobs(): Promise<void>;
   processNextJob: (
     job: IJob,
