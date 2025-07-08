@@ -6,6 +6,10 @@ export async function processNextJob(
   job: IJob,
   jobFn: (data?: any) => void | Promise<void>
 ): Promise<void> {
+  if (job.lockedAt) {
+    return;
+  }
+
   const maxRetries = job.maxRetries ?? 3;
   let attempts = 0;
   let success = false;

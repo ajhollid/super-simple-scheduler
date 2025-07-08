@@ -15,6 +15,7 @@ describe("addJob function", () => {
     mockStore = {
       getJob: jest.fn(),
       addJob: jest.fn(),
+      updateJob: jest.fn(),
     };
 
     context = {
@@ -23,20 +24,21 @@ describe("addJob function", () => {
     };
   });
 
-  it("returns false and logs info if job with id already exists", async () => {
+  it("updates job and returns true if job with id already exists", async () => {
     mockStore.getJob.mockResolvedValue({ id: "job1" }); // simulate job exists
 
     const result = await addJob.call(context, {
       id: "job1",
-      template: "template1",
+      template: "template2",
     });
 
-    expect(result).toBe(false);
-    expect(mockLogger.info).toHaveBeenCalledWith(
-      "Job with id job1 already exists"
+    expect(result).toBe(true);
+    expect(mockStore.updateJob).toHaveBeenCalledWith(
+      "job1",
+      expect.objectContaining({
+        template: "template2",
+      })
     );
-    expect(mockStore.getJob).toHaveBeenCalledWith("job1");
-    expect(mockStore.addJob).not.toHaveBeenCalled();
   });
 
   it("adds job and returns true when job id is unique", async () => {
