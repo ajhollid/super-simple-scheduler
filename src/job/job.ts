@@ -7,6 +7,7 @@ export interface IJob {
   repeat?: number;
   maxRetries?: number;
   active: boolean;
+  startAt?: number | null;
   lastRunAt?: number | null;
   lastFinishedAt?: number | null;
   lockedAt?: number | null;
@@ -28,6 +29,7 @@ const JobSchema = new Schema<IJob>(
     repeat: { type: Number, default: null },
     maxRetries: { type: Number, default: 3 },
     active: { type: Boolean, required: true },
+    startAt: { type: Number, default: null },
     lastRunAt: { type: Number, default: null },
     lastFinishedAt: { type: Number, default: null },
     lockedAt: { type: Number, default: null },

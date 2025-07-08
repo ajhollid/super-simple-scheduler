@@ -27,6 +27,7 @@ const doStuff = async () => {
   for (let i = 0; i < 1; i++) {
     await scheduler.addJob({
       id: `test-${i}`,
+      startAt: Date.now() + 5000,
       template: "test",
       repeat: 2000,
       data: `test ${i}`,
@@ -37,6 +38,7 @@ const doStuff = async () => {
   for (let i = 0; i < 1; i++) {
     await scheduler.addJob({
       id: `test2-${i}`,
+      startAt: Date.now() + 5000,
       template: "test2",
       data: `test ${i}`,
       active: i % 2 === 0,

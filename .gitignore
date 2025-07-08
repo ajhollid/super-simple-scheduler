@@ -35,3 +35,6 @@ logs/
 
 # Optional system files
 Thumbs.db
+
+# Docker
+docker

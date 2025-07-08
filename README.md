@@ -165,6 +165,7 @@ Adds a new job to the scheduler.
 - `options.repeat` (optional): Interval in milliseconds between job executions. If null, job runs once
 - `options.data` (optional): Data to pass to the job template function
 - `options.active` (optional): Whether the job should be active. Default: true
+- `options.startAt` (optional): Timestamp when the job should start running. If not provided, job runs immediately
 
 **Returns:** `Promise<boolean>` - `true` if job was added or updated successfully
 
@@ -185,6 +186,14 @@ await scheduler.addJob({
   template: "cleanupDatabase",
   repeat: 24 * 60 * 60 * 1000, // 24 hours
   data: { tables: ["logs", "temp_data"] },
+});
+
+// Job with delayed start
+await scheduler.addJob({
+  template: "sendReminder",
+  startAt: Date.now() + 60000, // Start in 1 minute
+  repeat: 60 * 60 * 1000, // Then every hour
+  data: { message: "Don't forget!" },
 });
 
 // Inactive job (will be paused)
@@ -341,6 +350,7 @@ interface IJob {
   repeat?: number; // Interval in milliseconds (null for one-time)
   maxRetries?: number; // Maximum retry attempts (default: 3)
   active: boolean; // Whether job is active
+  startAt?: number | null; // Timestamp when job should start running
   lastRunAt?: number | null; // Timestamp of last execution
   lastFinishedAt?: number | null; // Timestamp of last completion
   lockedAt?: number | null; // Timestamp when job is being processed
@@ -400,6 +410,65 @@ const scheduler = new Scheduler({
 ### Redis Store (Planned)
 
 Redis support is planned for future releases.
+
+## Job Execution Logic
+
+The scheduler uses a sophisticated job execution system that determines when jobs should run based on multiple factors:
+
+### Job Execution Conditions
+
+A job will run when **all** of the following conditions are met:
+
+1. **Active Status**: Job is active (`active: true`)
+2. **Start Time**: If `startAt` is set, the current time must be >= `startAt`
+3. **Execution History**:
+   - If job has never run before (`lastRunAt: null`), it runs immediately
+   - If job is one-time (`repeat: null`) and has already run, it doesn't run again
+   - If job is repeating, enough time must have passed since the last run
+
+### Timing Examples
+
+```typescript
+// Immediate execution (default)
+await scheduler.addJob({
+  template: "sendEmail",
+  data: { to: "user@example.com" },
+});
+// Runs on next processing cycle (within 1 second)
+
+// Delayed start
+await scheduler.addJob({
+  template: "sendEmail",
+  startAt: Date.now() + 60000, // Start in 1 minute
+  data: { to: "user@example.com" },
+});
+// Runs 1 minute from now
+
+// One-time job
+await scheduler.addJob({
+  template: "sendEmail",
+  // No repeat = one-time job
+  data: { to: "user@example.com" },
+});
+// Runs once, then never again
+
+// Repeating job
+await scheduler.addJob({
+  template: "sendEmail",
+  repeat: 60000, // Every minute
+  data: { to: "user@example.com" },
+});
+// Runs every minute
+
+// Repeating job with delayed start
+await scheduler.addJob({
+  template: "sendEmail",
+  startAt: Date.now() + 60000, // Start in 1 minute
+  repeat: 60000, // Then every minute
+  data: { to: "user@example.com" },
+});
+// Starts in 1 minute, then runs every minute
+```
 
 ## Configuration
 
@@ -527,6 +596,15 @@ await scheduler.addJob({
   template: "testTemplate",
   repeat: 5000,
   data: { message: "Hello World" },
+});
+
+// Add a job with delayed start
+await scheduler.addJob({
+  id: "delayed-job",
+  template: "testTemplate",
+  startAt: Date.now() + 10000, // Start in 10 seconds
+  repeat: 5000,
+  data: { message: "Delayed Hello World" },
 });
 
 // Update the same job (will update existing job instead of failing)

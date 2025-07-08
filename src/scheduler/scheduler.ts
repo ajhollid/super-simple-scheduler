@@ -26,12 +26,14 @@ export interface IScheduler {
   addJob: ({
     id,
     template,
+    startAt,
     repeat,
     data,
     active,
   }: {
     id?: string | number;
     template: string;
+    startAt?: number;
     repeat?: number;
     data?: any;
     active?: boolean;
