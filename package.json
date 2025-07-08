@@ -14,7 +14,8 @@
     "dev": "npx nodemon index.ts",
     "test-coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test-store": "node --experimental-vm-modules node_modules/.bin/jest tests/store/mongo.test.js --coverage"
+    "test-mongo-store": "node --experimental-vm-modules node_modules/.bin/jest tests/store/mongo.test.js --coverage",
+    "test-in-memory-store": "node --experimental-vm-modules node_modules/.bin/jest tests/store/in-memory.test.js --coverage"
   },
   "keywords": [
     "scheduler",
