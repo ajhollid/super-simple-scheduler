@@ -9,12 +9,14 @@ export async function addJob(
     repeat,
     data,
     active = true,
+    startAt,
   }: {
     id?: string | number;
     template: string;
     repeat?: number;
     data?: any;
     active?: boolean;
+    startAt?: number;
   }
 ) {
   let jobId = id;
@@ -27,6 +29,7 @@ export async function addJob(
       template: template,
       data: data,
       repeat: repeat,
+      startAt: startAt,
       lastRunAt: null,
       lockedAt: null,
       active: active,
@@ -39,6 +42,7 @@ export async function addJob(
     template: template,
     data: data,
     repeat: repeat,
+    startAt: startAt,
     lastRunAt: null,
     lockedAt: null,
     active: active,
