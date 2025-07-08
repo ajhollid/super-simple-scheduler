@@ -6,6 +6,7 @@ const doStuff = async () => {
     logLevel: "info",
     dev: true,
     processEvery: 1000,
+    dbUri: "mongodb://localhost:27017/uptime_db",
   });
   scheduler.addTemplate("test", (data) => {
     const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
@@ -41,17 +42,17 @@ const doStuff = async () => {
       active: i % 2 === 0,
     });
   }
-  await scheduler.pauseJob("test-0");
-  let job = await scheduler.getJob("test-0");
-  console.log(job?.active);
-  await scheduler.resumeJob("test-0");
-  job = await scheduler.getJob("test-0");
-  let jobs = await scheduler.getJobs();
-  console.log(jobs);
+  // await scheduler.pauseJob("test-0");
+  // let job = await scheduler.getJob("test-0");
+  // console.log(job?.active);
+  // await scheduler.resumeJob("test-0");
+  // job = await scheduler.getJob("test-0");
+  // let jobs = await scheduler.getJobs();
+  // console.log(jobs);
 
-  await scheduler.flushJobs();
-  jobs = await scheduler.getJobs();
-  console.log(jobs);
+  // await scheduler.flushJobs();
+  // jobs = await scheduler.getJobs();
+  // console.log(jobs);
 };
 
 doStuff();

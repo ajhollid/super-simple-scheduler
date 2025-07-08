@@ -23,6 +23,7 @@ type SchedulerOptions = {
   logLevel?: "none" | "info" | "debug" | "warn" | "error";
   dev?: boolean;
   processEvery?: number;
+  dbUri?: string;
 };
 
 class Scheduler implements IScheduler {
@@ -37,20 +38,24 @@ class Scheduler implements IScheduler {
       logLevel = "info",
       dev = false,
       processEvery = 1000,
+      dbUri = "",
     } = options;
 
     this.processEvery = processEvery;
     this.intervalId = null;
     this.logger = new Logger(logLevel, dev);
-    this.store =
-      storeType === "inMemory"
-        ? new InMemoryStore()
-        : storeType === "mongo"
-        ? new MongoStore(
-            { uri: "mongodb://localhost:27017/uptime_db" },
-            this.logger
-          )
-        : new InMemoryStore(); // TODO switch
+
+    switch (storeType) {
+      case "inMemory":
+        this.store = new InMemoryStore();
+        break;
+      case "mongo":
+        this.store = new MongoStore({ uri: dbUri }, this.logger);
+        break;
+      default:
+        this.store = new InMemoryStore();
+        break;
+    }
   }
 
   get start(): () => Promise<boolean> {
