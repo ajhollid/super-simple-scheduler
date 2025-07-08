@@ -1,4 +1,4 @@
-import { IScheduler } from "./scheduler.js";
+import { IScheduler, SchedulerOptions } from "./scheduler.js";
 import { IStore } from "../store/store.js";
 import { IJob } from "../job/job.js";
 import { Logger } from "../utils/logger.js";
@@ -17,14 +17,6 @@ import { pauseJob as pauseJobFn } from "./pause-job.js";
 import { resumeJob as resumeJobFn } from "./resume-job.js";
 import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
 import { MongoStore } from "../store/mongo/mongoStore.js";
-
-type SchedulerOptions = {
-  storeType: "inMemory" | "mongo" | "redis";
-  logLevel?: "none" | "info" | "debug" | "warn" | "error";
-  dev?: boolean;
-  processEvery?: number;
-  dbUri?: string;
-};
 
 class Scheduler implements IScheduler {
   public processEvery: number;

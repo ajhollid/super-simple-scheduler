@@ -1,6 +1,6 @@
 {
   "name": "super-simple-scheduler",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "A simple scheduler for Node.js",
   "main": "dist/scheduler/index.js",
   "types": "dist/scheduler/index.d.ts",
