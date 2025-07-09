@@ -24,7 +24,18 @@ export class Logger {
         winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
         winston.format.printf(({ timestamp, level, message, ...meta }) => {
           const metaString = Object.keys(meta).length
-            ? JSON.stringify(meta, null, dev ? 2 : 0)
+            ? JSON.stringify(
+                meta,
+                (key, value) => {
+                  if (value instanceof Error) {
+                    return {
+                      message: value.message,
+                    };
+                  }
+                  return value;
+                },
+                dev ? 2 : 0
+              )
             : "";
           return `${timestamp} ${level}: ${message} ${metaString}`;
         })
@@ -34,7 +45,7 @@ export class Logger {
   }
 
   info(message: string, meta: any = {}) {
-    this._logger.info(message, this._addCallSiteMeta(meta));
+    this._logger.info(message);
   }
 
   warn(message: string, meta?: any) {

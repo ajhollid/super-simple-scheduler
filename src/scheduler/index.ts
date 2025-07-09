@@ -16,6 +16,7 @@ import { pauseJob as pauseJobFn } from "./pause-job.js";
 import { resumeJob as resumeJobFn } from "./resume-job.js";
 import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
 import { MongoStore } from "../store/mongo/mongoStore.js";
+import { RedisStore } from "../store/redis/redisStore.js";
 
 class Scheduler implements IScheduler {
   public processEvery: number;
@@ -42,6 +43,9 @@ class Scheduler implements IScheduler {
         break;
       case "mongo":
         this.store = new MongoStore({ uri: dbUri }, this.logger);
+        break;
+      case "redis":
+        this.store = new RedisStore({ uri: dbUri }, this.logger);
         break;
       default:
         this.store = new InMemoryStore();
