@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  publish:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,12 +22,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: ./coverage/lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
 
       - name: Check if version is updated
         id: version-check
