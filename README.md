@@ -1,5 +1,5 @@
 ![](https://img.shields.io/npm/v/super-simple-scheduler.svg?style=flat)
-![](https://img.shields.io/github/license/ajhollid/kepler_utils.svg?style=flat)
+![](https://img.shields.io/github/license/ajhollid/super-simple-scheduler.svg?style=flat)
 ![](https://img.shields.io/github/repo-size/ajhollid/super-simple-scheduler.svg?style=flat)
 ![](https://img.shields.io/npm/d18m/super-simple-scheduler)
 ![](https://img.shields.io/github/last-commit/ajhollid/super-simple-scheduler.svg?style=flat)
