@@ -1,6 +1,6 @@
 {
   "name": "super-simple-scheduler",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A simple scheduler for Node.js",
   "main": "dist/scheduler/index.js",
   "types": "dist/scheduler/index.d.ts",
@@ -36,6 +36,7 @@
     "@jest/globals": "30.0.4",
     "@types/jest": "30.0.0",
     "@types/node": "24.0.4",
+    "codecov": "3.8.3",
     "jest": "30.0.4",
     "mongodb-memory-server": "10.1.4",
     "nodemon": "3.1.10",
