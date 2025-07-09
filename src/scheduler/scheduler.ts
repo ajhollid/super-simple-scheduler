@@ -18,10 +18,6 @@ export interface IScheduler {
   start: () => Promise<boolean>;
   stop: () => Promise<boolean>;
   processJobs(): Promise<void>;
-  processNextJob: (
-    job: IJob,
-    jobFn: (data?: any) => void | Promise<void>
-  ) => Promise<void>;
 
   addJob: ({
     id,

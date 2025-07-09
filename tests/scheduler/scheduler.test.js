@@ -28,11 +28,6 @@ jest.unstable_mockModule("../../src/scheduler/process-jobs.js", () => {
   return { processJobs: mockProcessJobs };
 });
 
-jest.unstable_mockModule("../../src/scheduler/process-next-job.js", () => {
-  mockProcessNextJob = jest.fn().mockResolvedValue();
-  return { processNextJob: mockProcessNextJob };
-});
-
 jest.unstable_mockModule("../../src/scheduler/add-job.js", () => {
   mockAddJob = jest.fn().mockResolvedValue(true);
   return { addJob: mockAddJob };
@@ -91,7 +86,6 @@ describe("Scheduler", () => {
     mockStart.mockClear();
     mockStop.mockClear();
     mockProcessJobs.mockClear();
-    mockProcessNextJob.mockClear();
     mockAddJob.mockClear();
     mockPauseJob.mockClear();
     mockResumeJob.mockClear();
@@ -137,14 +131,6 @@ describe("Scheduler", () => {
     it("calls processJobsFn when scheduler.processJobs() is invoked", async () => {
       const result = await scheduler.processJobs();
       expect(mockProcessJobs).toHaveBeenCalled();
-      expect(result).toBe(undefined);
-    });
-  });
-
-  describe("processNextJob", () => {
-    it("calls processNextJobFn when scheduler.processNextJob() is invoked", async () => {
-      const result = await scheduler.processNextJob();
-      expect(mockProcessNextJob).toHaveBeenCalled();
       expect(result).toBe(undefined);
     });
   });

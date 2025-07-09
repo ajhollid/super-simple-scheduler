@@ -5,7 +5,6 @@ import { Logger } from "../utils/logger.js";
 import { start as startFn } from "./start.js";
 import { stop as stopFn } from "./stop.js";
 import { processJobs as processJobsFn } from "./process-jobs.js";
-import { processNextJob as processNextJobFn } from "./process-next-job.js";
 import { addJob as addJobFn } from "./add-job.js";
 import { getJob as getJobFn } from "./get-job.js";
 import { getJobs as getJobsFn } from "./get-jobs.js";
@@ -60,13 +59,6 @@ class Scheduler implements IScheduler {
 
   get processJobs(): () => Promise<void> {
     return processJobsFn;
-  }
-
-  get processNextJob(): (
-    job: IJob,
-    jobFn: (data?: any) => void | Promise<void>
-  ) => Promise<void> {
-    return processNextJobFn;
   }
 
   get addJob(): ({

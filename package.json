@@ -1,6 +1,6 @@
 {
   "name": "super-simple-scheduler",
-  "version": "1.0.19",
+  "version": "1.0.2",
   "description": "A simple scheduler for Node.js",
   "main": "dist/scheduler/index.js",
   "types": "dist/scheduler/index.d.ts",
@@ -15,7 +15,8 @@
     "test-coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "test-mongo-store": "node --experimental-vm-modules node_modules/.bin/jest tests/store/mongo.test.js --coverage",
-    "test-in-memory-store": "node --experimental-vm-modules node_modules/.bin/jest tests/store/in-memory.test.js --coverage"
+    "test-in-memory-store": "node --experimental-vm-modules node_modules/.bin/jest tests/store/in-memory.test.js --coverage",
+    "test-process": "node --experimental-vm-modules node_modules/.bin/jest tests/scheduler/scheduler-process-jobs.test.js --coverage"
   },
   "keywords": [
     "scheduler",
