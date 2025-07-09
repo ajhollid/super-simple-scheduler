@@ -29,6 +29,22 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
+      - name: Check if version is updated
+        id: version-check
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          PUBLISHED_VERSION=$(npm view your-package-name version || echo "none")
+          echo "Published version: $PUBLISHED_VERSION"
+
+          if [ "$CURRENT_VERSION" = "$PUBLISHED_VERSION" ]; then
+            echo "Version not updated, skipping publish"
+            echo "publish=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version updated, publishing"
+            echo "publish=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to NPM
         run: npm publish
         env:
