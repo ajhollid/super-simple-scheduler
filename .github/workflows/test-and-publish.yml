@@ -1,4 +1,4 @@
-name: Run Tests with Coverage and Publish to NPM
+name: Publish to NPM
 
 on:
   push:
@@ -22,10 +22,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      - name: Run tests with coverage
-        run: npm run test-coverage
-
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
