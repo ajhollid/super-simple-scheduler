@@ -4,6 +4,7 @@
 ![](https://img.shields.io/npm/d18m/super-simple-scheduler)
 ![](https://img.shields.io/github/last-commit/ajhollid/super-simple-scheduler.svg?style=flat)
 ![](https://img.shields.io/github/languages/top/ajhollid/super-simple-scheduler.svg?style=flat)
+![](https://img.shields.io/codecov/c/github/ajhollid/super-simple-scheduler/master?style=flat)
 
 # Super Simple Scheduler
 
