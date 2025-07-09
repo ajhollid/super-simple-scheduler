@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { jest } from "@jest/globals";
 import { JobModel } from "../../src/job/job.js";
+
 describe("MongoStore", () => {
   let mockLogger;
   let mockStore;
