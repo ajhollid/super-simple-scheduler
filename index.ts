@@ -2,32 +2,32 @@ import Scheduler from "./src/scheduler/index.js";
 
 const doStuff = async () => {
   const scheduler = new Scheduler({
-    storeType: "mongo",
+    storeType: "redis",
     logLevel: "info",
     dev: true,
     processEvery: 1000,
-    dbUri: "mongodb://localhost:27017/uptime_db",
+    dbUri: "redis://localhost:6379",
+    // dbUri: "mongodb://localhost:27017/uptime_db",
   });
-  scheduler.addTemplate("test", (data) => {
+  await scheduler.addTemplate("test", (data) => {
     const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
 
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        console.log("running job");
+        console.log(data);
         resolve();
         // reject(new Error("test error"));
       }, delay);
     });
   });
-  scheduler.addTemplate("test2", (data) => {
+
+  await scheduler.addTemplate("test2", (data) => {
     console.log("running job 2");
   });
   await scheduler.start();
-
   for (let i = 0; i < 1; i++) {
-    await scheduler.addJob({
+    const res = await scheduler.addJob({
       id: `test-${i}`,
-      startAt: Date.now() + 5000,
       template: "test",
       repeat: 2000,
       data: `test ${i}`,
