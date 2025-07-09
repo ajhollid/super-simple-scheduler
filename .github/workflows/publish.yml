@@ -28,7 +28,7 @@ jobs:
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
-          PUBLISHED_VERSION=$(npm view your-package-name version || echo "none")
+          PUBLISHED_VERSION=$(npm view super-simple-scheduler version || echo "none")
           echo "Published version: $PUBLISHED_VERSION"
 
           if [ "$CURRENT_VERSION" = "$PUBLISHED_VERSION" ]; then
