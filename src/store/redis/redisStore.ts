@@ -23,7 +23,7 @@ export class RedisStore implements IStore {
     this.redis = null;
   }
 
-  async init(maxWaitTime: number = 10000): Promise<boolean> {
+  async init(maxWaitTime: number = 2000): Promise<boolean> {
     try {
       this.redis = new Redis(this.uri);
       this.redis.on("error", (error) => {
