@@ -23,7 +23,7 @@ export class RedisStore implements IStore {
     this.redis = null;
   }
 
-  async init(): Promise<boolean> {
+  async init(maxWaitTime: number = 10000): Promise<boolean> {
     try {
       this.redis = new Redis(this.uri);
       this.redis.on("error", (error) => {
@@ -35,28 +35,22 @@ export class RedisStore implements IStore {
         this.isConnected = false;
       });
 
-      await new Promise<void>((resolve, reject) => {
-        const onConnect = () => {
-          this.logger.info("Redis connected");
-          this.isConnected = true;
-          cleanup();
-          resolve();
-        };
-
-        const onError = (error: Error) => {
-          this.logger.error("Redis error during connection", { error });
-          cleanup();
-          reject(error);
-        };
-
-        const cleanup = () => {
-          this.redis?.off("connect", onConnect);
-          this.redis?.off("error", onError);
-        };
-
-        this.redis?.once("connect", onConnect);
-        this.redis?.once("error", onError);
+      this.redis.on("connect", () => {
+        this.logger.info("Redis connected");
+        this.isConnected = true;
       });
+
+      const checkInterval = 100;
+      let waitedTime = 0;
+
+      while (!this.isConnected && waitedTime < maxWaitTime) {
+        await new Promise((resolve) => setTimeout(resolve, checkInterval));
+        waitedTime += checkInterval;
+      }
+
+      if (!this.isConnected) {
+        throw new Error("Failed to connect to Redis");
+      }
 
       return true;
     } catch (error) {
@@ -67,6 +61,7 @@ export class RedisStore implements IStore {
 
   async addJob(job: IJob): Promise<boolean> {
     if (!this.redis || !this.isConnected) {
+      this.logger.error("Redis not connected");
       return false;
     }
 
@@ -87,7 +82,10 @@ export class RedisStore implements IStore {
     try {
       const jobKey = `${JOB_KEY}:${id}`;
       const job = await this.redis.get(jobKey);
-      return job ? JSON.parse(job) : null;
+      if (!job) {
+        throw new Error("Job not found");
+      }
+      return JSON.parse(job);
     } catch (error) {
       return null;
     }
@@ -102,7 +100,10 @@ export class RedisStore implements IStore {
       const jobKey = `${JOB_KEY}:${id}`;
       const deleted = await this.redis.del(jobKey);
       await this.redis.srem(JOB_SET_KEY, jobKey);
-      return deleted > 0;
+      if (deleted <= 0) {
+        throw new Error("Job not found");
+      }
+      return true;
     } catch (error) {
       return false;
     }
@@ -117,7 +118,7 @@ export class RedisStore implements IStore {
       const jobKey = `${JOB_KEY}:${id}`;
       const existingJobData = await this.redis.get(jobKey);
       if (!existingJobData) {
-        return false;
+        throw new Error("Job not found");
       }
       const existingJob = JSON.parse(existingJobData) as IJob;
       const updatedJob = { ...existingJob, ...updates };
@@ -135,7 +136,7 @@ export class RedisStore implements IStore {
     try {
       const jobKeys = await this.redis.smembers(JOB_SET_KEY);
       if (jobKeys.length === 0) {
-        return [];
+        throw new Error("No jobs found");
       }
 
       const jobDataArray = await this.redis.mget(jobKeys);
@@ -156,13 +157,13 @@ export class RedisStore implements IStore {
     try {
       const jobKeys = await this.redis.smembers(JOB_SET_KEY);
       if (jobKeys.length === 0) {
-        return true;
+        throw new Error("No jobs to flush");
       }
       await this.redis.del(...jobKeys);
       await this.redis.del(JOB_SET_KEY);
       return true;
     } catch (error) {
-      return true;
+      return false;
     }
   }
 
