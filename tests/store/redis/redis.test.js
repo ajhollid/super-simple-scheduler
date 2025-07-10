@@ -1,9 +1,12 @@
 import RedisMock from "ioredis-mock";
-import { RedisStore } from "../../../src/store/redis/redisStore.js";
 import { jest } from "@jest/globals";
-import { EventEmitter } from "events";
 
-jest.mock("ioredis", () => RedisMock);
+jest.doMock("ioredis", () => ({
+  __esModule: true,
+  default: RedisMock,
+  Redis: RedisMock,
+}));
+const { RedisStore } = await import("../../../src/store/redis/redisStore.js");
 
 describe("RedisStore", () => {
   let mockLogger;
