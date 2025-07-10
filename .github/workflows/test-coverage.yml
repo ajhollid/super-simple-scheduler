@@ -5,7 +5,7 @@ on:
     branches: [develop]
 
 jobs:
-  test:
+  test-with-coverage:
     runs-on: ubuntu-latest
 
     steps:
