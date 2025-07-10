@@ -1,4 +1,7 @@
 import { jest } from "@jest/globals";
+import { MongoStore } from "../../src/store/mongo/mongoStore.js";
+import { RedisStore } from "../../src/store/redis/redisStore.js";
+import { InMemoryStore } from "../../src/store/inMemory/inMemoryStore.js";
 
 let mockStart;
 let mockStop;
@@ -309,5 +312,101 @@ describe("Scheduler", () => {
       expect(mockAddTemplate).toHaveBeenCalledWith("otherTemplate", templateFn);
       expect(result).toBe(false);
     });
+  });
+});
+
+describe("Scheduler - Mongo", () => {
+  let scheduler;
+
+  beforeEach(() => {
+    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
+    mockStart.mockClear();
+    mockStop.mockClear();
+    mockProcessJobs.mockClear();
+    mockAddJob.mockClear();
+    mockPauseJob.mockClear();
+    mockResumeJob.mockClear();
+    mockGetJob.mockClear();
+    mockGetJobs.mockClear();
+  });
+
+  it("should create a new scheduler with mongo store", () => {
+    const scheduler = new Scheduler({ storeType: "mongo", dev: true });
+    expect(scheduler.store).toBeInstanceOf(MongoStore);
+  });
+});
+
+describe("Scheduler - Redis", () => {
+  let scheduler;
+
+  beforeEach(() => {
+    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
+    mockStart.mockClear();
+    mockStop.mockClear();
+    mockProcessJobs.mockClear();
+    mockAddJob.mockClear();
+    mockPauseJob.mockClear();
+    mockResumeJob.mockClear();
+    mockGetJob.mockClear();
+    mockGetJobs.mockClear();
+  });
+
+  it("should create a new scheduler with redis store", () => {
+    const scheduler = new Scheduler({ storeType: "redis", dev: true });
+    expect(scheduler.store).toBeInstanceOf(RedisStore);
+  });
+});
+
+describe("Scheduler - Default and Optional Values", () => {
+  let scheduler;
+
+  beforeEach(() => {
+    scheduler = new Scheduler({ dev: true });
+    mockStart.mockClear();
+    mockStop.mockClear();
+    mockProcessJobs.mockClear();
+    mockAddJob.mockClear();
+    mockPauseJob.mockClear();
+    mockResumeJob.mockClear();
+    mockGetJob.mockClear();
+    mockGetJobs.mockClear();
+  });
+  it("should use default values when options are not provided", () => {
+    const scheduler = new Scheduler({ storeType: "inMemory" });
+
+    expect(scheduler.processEvery).toBe(1000);
+    expect(scheduler.intervalId).toBeNull();
+    expect(scheduler.logger).toBeDefined();
+    expect(scheduler.store).toBeDefined();
+  });
+
+  it("should use custom values when options are provided", () => {
+    const scheduler = new Scheduler({
+      storeType: "inMemory",
+      logLevel: "debug",
+      dev: true,
+      processEvery: 5000,
+      dbUri: "test-uri",
+    });
+
+    expect(scheduler.processEvery).toBe(5000);
+    expect(scheduler.intervalId).toBeNull();
+    expect(scheduler.logger).toBeDefined();
+    expect(scheduler.store).toBeDefined();
+  });
+
+  it("should use inMemory db when invalid storeType provided", () => {
+    const scheduler = new Scheduler({
+      storeType: "invalid",
+      logLevel: "debug",
+      dev: true,
+      processEvery: 5000,
+      dbUri: "test-uri",
+    });
+
+    expect(scheduler.processEvery).toBe(5000);
+    expect(scheduler.intervalId).toBeNull();
+    expect(scheduler.logger).toBeDefined();
+    expect(scheduler.store).toBeInstanceOf(InMemoryStore);
   });
 });
