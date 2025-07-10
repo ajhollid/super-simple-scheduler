@@ -4,8 +4,8 @@
 ![](https://img.shields.io/npm/d18m/super-simple-scheduler)
 ![](https://img.shields.io/github/last-commit/ajhollid/super-simple-scheduler.svg?style=flat)
 ![](https://img.shields.io/github/languages/top/ajhollid/super-simple-scheduler.svg?style=flat)
-![](https://img.shields.io/codecov/c/github/ajhollid/super-simple-scheduler/master?style=flat)
-[![Tests](https://github.com/ajhollid/super-simple-scheduler/actions/workflows/test.yml/badge.svg)](https://github.com/ajhollid/super-simple-scheduler/actions/workflows/test.yml)
+![](https://img.shields.io/codecov/c/github/ajhollid/super-simple-scheduler/develop?style=flat)
+[![Tests](https://github.com/ajhollid/super-simple-scheduler/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/ajhollid/super-simple-scheduler/actions/workflows/test.yml)
 
 # Super Simple Scheduler
 
