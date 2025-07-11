@@ -18,11 +18,7 @@ import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
 import { MongoStore } from "../store/mongo/mongoStore.js";
 import { RedisStore } from "../store/redis/redisStore.js";
 
-function createScheduler<T extends SchedulerOptions>(options: T): Scheduler {
-  return new Scheduler(options);
-}
-
-class Scheduler implements IScheduler {
+export class Scheduler implements IScheduler {
   public processEvery: number;
   public intervalId: NodeJS.Timeout | null;
   public store: IStore;
@@ -124,6 +120,12 @@ class Scheduler implements IScheduler {
   ) => Promise<boolean> {
     return addTemplateFn;
   }
+}
+
+export function createScheduler<T extends SchedulerOptions>(
+  options: T
+): Scheduler {
+  return new Scheduler(options);
 }
 
 export default createScheduler;
