@@ -180,4 +180,19 @@ export class RedisStore implements IStore {
   ): Promise<((data?: any) => void | Promise<void>) | null> {
     return this.templates.get(name) ?? null;
   }
+
+  async close(): Promise<boolean> {
+    try {
+      if (!this.redis) {
+        return true;
+      }
+      this.redis.disconnect();
+      await this.redis.quit();
+      this.templates.clear();
+      return true;
+    } catch (error) {
+      this.logger.error("Failed to close Redis connection", { error });
+      return false;
+    }
+  }
 }

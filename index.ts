@@ -1,7 +1,7 @@
-import Scheduler from "./src/scheduler/index.js";
+import { createScheduler } from "./src/scheduler/index.js";
 
 const doStuff = async () => {
-  const scheduler = new Scheduler({
+  const scheduler = createScheduler({
     storeType: "redis",
     logLevel: "info",
     dev: true,
@@ -55,6 +55,7 @@ const doStuff = async () => {
   // await scheduler.flushJobs();
   // jobs = await scheduler.getJobs();
   // console.log(jobs);
+  await scheduler.stop();
 };
 
 doStuff();

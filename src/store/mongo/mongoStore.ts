@@ -103,4 +103,15 @@ export class MongoStore implements IStore {
       return false;
     }
   }
+
+  async close(): Promise<boolean> {
+    try {
+      await mongoose.connection.close();
+      this.templates.clear();
+      return true;
+    } catch (error) {
+      this.logger.error("Failed to close MongoDB connection", { error });
+      return false;
+    }
+  }
 }
