@@ -26,6 +26,9 @@ describe("RedisStore", () => {
     if (mockStore["redis"]) {
       await mockStore["redis"].disconnect();
     }
+
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe("init", () => {
@@ -190,6 +193,32 @@ describe("RedisStore", () => {
     it("should return null if template does not exist", async () => {
       const result = await mockStore.getTemplate("test");
       expect(result).toBeNull();
+    });
+  });
+
+  describe("close", () => {
+    it("should return true if the store is closed", async () => {
+      await mockStore.init();
+      const result = await mockStore.close();
+      expect(result).toBe(true);
+    });
+
+    it("should return true if there is no redis", async () => {
+      const result = await mockStore.close();
+      expect(result).toBe(true);
+    });
+
+    it("should return false if the store fails to close", async () => {
+      await mockStore.init();
+      const disconnectSpy = jest
+        .spyOn(mockStore["redis"], "disconnect")
+        .mockImplementation(() => {
+          throw new Error("Connection failed");
+        });
+      const result = await mockStore.close();
+      expect(result).toBe(false);
+      expect(mockLogger.error).toHaveBeenCalled();
+      disconnectSpy.mockRestore();
     });
   });
 });

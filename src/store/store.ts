@@ -17,4 +17,5 @@ export interface IStore {
   getTemplate(
     name: string
   ): Promise<((data?: any) => void | Promise<void>) | null>;
+  close(): Promise<boolean>;
 }

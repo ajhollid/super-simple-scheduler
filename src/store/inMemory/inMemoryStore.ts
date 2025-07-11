@@ -54,4 +54,10 @@ export class InMemoryStore implements IStore {
     this.jobs.clear();
     return true;
   }
+
+  async close(): Promise<boolean> {
+    this.jobs.clear();
+    this.templates.clear();
+    return true;
+  }
 }

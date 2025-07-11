@@ -237,4 +237,21 @@ describe("MongoStore", () => {
       expect(mockLogger.error).toHaveBeenCalled();
     });
   });
+
+  describe("close", () => {
+    it("should return true if the store is closed", async () => {
+      const result = await mockStore.close();
+      expect(result).toBe(true);
+    });
+
+    it("should return false if the store is not closed", async () => {
+      const originalClose = mongoose.connection.close;
+      mongoose.connection.close = jest
+        .fn()
+        .mockRejectedValue(new Error("Connection failed"));
+      const result = await mockStore.close();
+      mongoose.connection.close = originalClose;
+      expect(result).toBe(false);
+    });
+  });
 });

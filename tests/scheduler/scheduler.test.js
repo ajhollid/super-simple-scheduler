@@ -79,13 +79,14 @@ jest.unstable_mockModule("../../src/scheduler/add-template.js", () => {
 beforeAll(async () => {
   const module = await import("../../src/scheduler/index.js");
   Scheduler = module.default;
+  createScheduler = module.createScheduler;
 });
 
 describe("Scheduler", () => {
   let scheduler;
 
   beforeEach(() => {
-    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
+    scheduler = createScheduler({ storeType: "inMemory", dev: true });
     mockStart.mockClear();
     mockStop.mockClear();
     mockProcessJobs.mockClear();

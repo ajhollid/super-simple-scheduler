@@ -6,5 +6,5 @@ export async function stop(this: IScheduler) {
     clearInterval(this.intervalId);
   }
   this.intervalId = null;
-  return true;
+  return await this.store.close();
 }

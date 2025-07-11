@@ -130,4 +130,11 @@ describe("InMemoryStore", () => {
       expect(result).toBe(true);
     });
   });
+
+  describe("close", () => {
+    it("should return true if the store is closed", async () => {
+      const result = await store.close();
+      expect(result).toBe(true);
+    });
+  });
 });
