@@ -18,6 +18,8 @@ import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
 import { MongoStore } from "../store/mongo/mongoStore.js";
 import { RedisStore } from "../store/redis/redisStore.js";
 
+export type { SchedulerOptions } from "./scheduler.js";
+
 export class Scheduler implements IScheduler {
   public processEvery: number;
   public intervalId: NodeJS.Timeout | null;
