@@ -34,7 +34,7 @@ npm install super-simple-scheduler
 ## Quick Start
 
 ```typescript
-import { createScheduler } from "super-simple-scheduler";
+import createScheduler from "super-simple-scheduler";
 
 // Create a scheduler instance
 const scheduler = createScheduler({
@@ -554,7 +554,7 @@ const scheduler = createScheduler({
 ### Email Scheduler with MongoDB
 
 ```typescript
-import { createScheduler } from "super-simple-scheduler";
+import createScheduler from "super-simple-scheduler";
 
 const scheduler = createScheduler({
   storeType: "mongo",
@@ -585,7 +585,7 @@ await scheduler.start();
 ### Email Scheduler with Redis
 
 ```typescript
-import { createScheduler } from "super-simple-scheduler";
+import createScheduler from "super-simple-scheduler";
 
 const scheduler = createScheduler({
   storeType: "redis",

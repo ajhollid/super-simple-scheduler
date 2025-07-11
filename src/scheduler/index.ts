@@ -18,9 +18,7 @@ import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
 import { MongoStore } from "../store/mongo/mongoStore.js";
 import { RedisStore } from "../store/redis/redisStore.js";
 
-export function createScheduler<T extends SchedulerOptions>(
-  options: T
-): Scheduler {
+function createScheduler<T extends SchedulerOptions>(options: T): Scheduler {
   return new Scheduler(options);
 }
 
@@ -128,4 +126,4 @@ class Scheduler implements IScheduler {
   }
 }
 
-export default Scheduler;
+export default createScheduler;
