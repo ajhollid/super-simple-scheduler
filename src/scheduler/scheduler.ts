@@ -2,14 +2,6 @@ import { IJob } from "../job/job.js";
 import { IStore } from "../store/store.js";
 import { Logger } from "../utils/logger.js";
 
-export type SchedulerOptions = {
-  storeType: "inMemory" | "mongo" | "redis";
-  logLevel?: "none" | "info" | "debug" | "warn" | "error";
-  dev?: boolean;
-  processEvery?: number;
-  dbUri?: string;
-};
-
 export interface IScheduler {
   processEvery: number;
   intervalId: NodeJS.Timeout | null;
