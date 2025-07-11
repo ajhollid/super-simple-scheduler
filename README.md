@@ -127,7 +127,7 @@ if (success) {
 
 ##### `stop(): Promise<boolean>`
 
-Stops the scheduler and clears the processing interval.
+Stops the scheduler and clears the processing interval. Also closes the database connection if using MongoDB or Redis.
 
 **Returns:** `Promise<boolean>` - `true` if stopped successfully
 
