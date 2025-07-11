@@ -129,4 +129,6 @@ export function createScheduler<T extends SchedulerOptions>(
   return new Scheduler(options);
 }
 
+export type { SchedulerOptions } from "./scheduler-options.js";
+
 export default createScheduler;
