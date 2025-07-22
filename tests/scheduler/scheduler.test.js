@@ -78,14 +78,14 @@ jest.unstable_mockModule("../../src/scheduler/add-template.js", () => {
 
 beforeAll(async () => {
   const module = await import("../../src/scheduler/index.js");
-  createScheduler = module.default;
+  Scheduler = module.default;
 });
 
 describe("Scheduler", () => {
   let scheduler;
 
   beforeEach(() => {
-    scheduler = createScheduler({ storeType: "inMemory", dev: true });
+    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
     mockStart.mockClear();
     mockStop.mockClear();
     mockProcessJobs.mockClear();
@@ -319,7 +319,7 @@ describe("Scheduler - Mongo", () => {
   let scheduler;
 
   beforeEach(() => {
-    scheduler = createScheduler({ storeType: "inMemory", dev: true });
+    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
     mockStart.mockClear();
     mockStop.mockClear();
     mockProcessJobs.mockClear();
@@ -331,7 +331,7 @@ describe("Scheduler - Mongo", () => {
   });
 
   it("should create a new scheduler with mongo store", () => {
-    const scheduler = createScheduler({ storeType: "mongo", dev: true });
+    const scheduler = new Scheduler({ storeType: "mongo", dev: true });
     expect(scheduler.store).toBeInstanceOf(MongoStore);
   });
 });
@@ -340,7 +340,7 @@ describe("Scheduler - Redis", () => {
   let scheduler;
 
   beforeEach(() => {
-    scheduler = createScheduler({ storeType: "inMemory", dev: true });
+    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
     mockStart.mockClear();
     mockStop.mockClear();
     mockProcessJobs.mockClear();
@@ -352,7 +352,7 @@ describe("Scheduler - Redis", () => {
   });
 
   it("should create a new scheduler with redis store", () => {
-    const scheduler = createScheduler({ storeType: "redis", dev: true });
+    const scheduler = new Scheduler({ storeType: "redis", dev: true });
     expect(scheduler.store).toBeInstanceOf(RedisStore);
   });
 });
@@ -361,7 +361,7 @@ describe("Scheduler - Default and Optional Values", () => {
   let scheduler;
 
   beforeEach(() => {
-    scheduler = createScheduler({ dev: true });
+    scheduler = new Scheduler({ dev: true });
     mockStart.mockClear();
     mockStop.mockClear();
     mockProcessJobs.mockClear();
@@ -372,7 +372,7 @@ describe("Scheduler - Default and Optional Values", () => {
     mockGetJobs.mockClear();
   });
   it("should use default values when options are not provided", () => {
-    const scheduler = createScheduler({ storeType: "inMemory" });
+    const scheduler = new Scheduler({ storeType: "inMemory" });
 
     expect(scheduler.processEvery).toBe(1000);
     expect(scheduler.intervalId).toBeNull();
@@ -381,7 +381,7 @@ describe("Scheduler - Default and Optional Values", () => {
   });
 
   it("should use custom values when options are provided", () => {
-    const scheduler = createScheduler({
+    const scheduler = new Scheduler({
       storeType: "inMemory",
       logLevel: "debug",
       dev: true,
@@ -396,7 +396,7 @@ describe("Scheduler - Default and Optional Values", () => {
   });
 
   it("should use inMemory db when invalid storeType provided", () => {
-    const scheduler = createScheduler({
+    const scheduler = new Scheduler({
       storeType: "invalid",
       logLevel: "debug",
       dev: true,
