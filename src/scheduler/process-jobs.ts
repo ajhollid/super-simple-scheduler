@@ -24,7 +24,7 @@ export async function processJobs(this: IScheduler) {
 /**
  * Determines if a job should run based on all execution conditions
  */
-export function shouldJobRun(this: IScheduler, job: any): boolean {
+export function shouldJobRun(this: IScheduler, job: IJob): boolean {
   const now = Date.now();
 
   // Skip inactive jobs
@@ -65,8 +65,9 @@ export async function processNextJob(
   let attempts = 0;
   let success = false;
 
+  // Acquire lock
   job.lockedAt = Date.now();
-  await this.store.updateJob(job.id, { ...job });
+  await this.store.updateJob(job.id, { lockedAt: job.lockedAt });
 
   while (attempts < maxRetries) {
     attempts++;
@@ -89,6 +90,7 @@ export async function processNextJob(
     }
   }
 
+  // Release lock
   job.lockedAt = null;
 
   if (job.repeat === null) {
