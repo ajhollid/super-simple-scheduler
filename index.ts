@@ -1,14 +1,15 @@
-import { createScheduler } from "./src/scheduler/index.js";
+import Scheduler from "./src/scheduler/index.js";
 
 const doStuff = async () => {
-  const scheduler = createScheduler({
-    storeType: "redis",
+  const scheduler = new Scheduler({
+    storeType: "inMemory",
     logLevel: "info",
     dev: true,
     processEvery: 1000,
     dbUri: "redis://localhost:6379",
     // dbUri: "mongodb://localhost:27017/uptime_db",
   });
+
   await scheduler.addTemplate("test", (data) => {
     const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
 
@@ -55,7 +56,7 @@ const doStuff = async () => {
   // await scheduler.flushJobs();
   // jobs = await scheduler.getJobs();
   // console.log(jobs);
-  await scheduler.stop();
+  // await scheduler.stop();
 };
 
 doStuff();
