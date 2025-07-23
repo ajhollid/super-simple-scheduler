@@ -31,13 +31,31 @@ A lightweight and easy-to-use job scheduler for Node.js with support for repeate
 npm install super-simple-scheduler
 ```
 
+## TypeScript Support
+
+The package includes full TypeScript support with type definitions. You can import the `SchedulerOptions` type for better intellisense:
+
+```typescript
+import { Scheduler, SchedulerOptions } from "super-simple-scheduler";
+
+const options: SchedulerOptions = {
+  storeType: "inMemory",
+  logLevel: "info",
+  dev: true,
+  processEvery: 1000,
+  dbUri: "",
+};
+
+const scheduler = new Scheduler(options);
+```
+
 ## Quick Start
 
 ```typescript
-import createScheduler from "super-simple-scheduler";
+import { Scheduler, SchedulerOptions } from "super-simple-scheduler";
 
 // Create a scheduler instance
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "inMemory", // or "mongo" or "redis"
   logLevel: "info",
   dev: false,
@@ -70,27 +88,21 @@ The main scheduler class that manages job execution.
 #### Constructor
 
 ```typescript
-createScheduler(options: {
-  storeType: "inMemory" | "mongo" | "redis";
-  logLevel?: "none" | "info" | "debug" | "warn" | "error";
-  dev?: boolean;
-  processEvery?: number;
-  dbUri?: string;
-})
+new Scheduler(options: SchedulerOptions)
 ```
 
 **Parameters:**
 
-- `storeType`: Storage backend to use ('inMemory', 'mongo', 'redis'). Default: 'inMemory'
-- `logLevel` (optional): Logging level ('none', 'debug', 'info', 'warn', 'error'). Default: 'info'
-- `dev` (optional): Development mode flag. Default: false
-- `processEvery` (optional): Interval in milliseconds to process jobs. Default: 1000
-- `dbUri` (optional): Database connection URI for MongoDB or Redis. Required when `storeType` is 'mongo' or 'redis'
+- `options.storeType`: Storage backend to use ('inMemory', 'mongo', 'redis'). Default: 'inMemory'
+- `options.logLevel` (optional): Logging level ('none', 'debug', 'info', 'warn', 'error'). Default: 'info'
+- `options.dev` (optional): Development mode flag. Default: false
+- `options.processEvery` (optional): Interval in milliseconds to process jobs. Default: 1000
+- `options.dbUri` (optional): Database connection URI for MongoDB or Redis. Required when `storeType` is 'mongo' or 'redis'
 
 **Example:**
 
 ```typescript
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "mongo",
   dbUri: "mongodb://localhost:27017/myapp",
   logLevel: "debug",
@@ -99,7 +111,7 @@ const scheduler = createScheduler({
 });
 
 // Or with Redis
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "redis",
   dbUri: "redis://localhost:6379",
   logLevel: "debug",
@@ -379,7 +391,7 @@ The scheduler supports multiple storage backends:
 ### In-Memory Store (Default)
 
 ```typescript
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "inMemory",
 });
 ```
@@ -398,7 +410,7 @@ const scheduler = createScheduler({
 ### MongoDB Store
 
 ```typescript
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "mongo",
   dbUri: "mongodb://localhost:27017/myapp",
   logLevel: "info",
@@ -422,7 +434,7 @@ const scheduler = createScheduler({
 ### Redis Store
 
 ```typescript
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "redis",
   dbUri: "redis://localhost:6379",
   logLevel: "info",
@@ -511,7 +523,7 @@ await scheduler.addJob({
 The scheduler processes jobs at regular intervals. The default interval is 1 second, but you can modify it:
 
 ```typescript
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   processEvery: 5000, // Process every 5 seconds
 });
 ```
@@ -543,7 +555,7 @@ The scheduler includes comprehensive error handling:
 The scheduler uses Winston for logging with configurable levels:
 
 ```typescript
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   logLevel: "debug", // 'none', 'debug', 'info', 'warn', 'error'
   dev: true, // Enhanced logging for development
 });
@@ -554,9 +566,9 @@ const scheduler = createScheduler({
 ### Email Scheduler with MongoDB
 
 ```typescript
-import createScheduler from "super-simple-scheduler";
+import { Scheduler } from "super-simple-scheduler";
 
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "mongo",
   dbUri: "mongodb://localhost:27017/email_scheduler",
   logLevel: "info",
@@ -585,9 +597,9 @@ await scheduler.start();
 ### Email Scheduler with Redis
 
 ```typescript
-import createScheduler from "super-simple-scheduler";
+import { Scheduler } from "super-simple-scheduler";
 
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "redis",
   dbUri: "redis://localhost:6379",
   logLevel: "info",
@@ -616,7 +628,7 @@ await scheduler.start();
 ### Data Processing Pipeline
 
 ```typescript
-const scheduler = createScheduler({
+const scheduler = new Scheduler({
   storeType: "inMemory",
   logLevel: "debug",
 });
@@ -653,7 +665,7 @@ await scheduler.start();
 ### Job Management Example
 
 ```typescript
-const scheduler = createScheduler({ storeType: "inMemory" });
+const scheduler = new Scheduler({ storeType: "inMemory" });
 
 // Add a job
 await scheduler.addJob({
