@@ -19,7 +19,7 @@ import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
 import { MongoStore } from "../store/mongo/mongoStore.js";
 import { RedisStore } from "../store/redis/redisStore.js";
 
-export class Scheduler implements IScheduler {
+export default class Scheduler implements IScheduler {
   public processEvery: number;
   public intervalId: NodeJS.Timeout | null;
   public store: IStore;
@@ -122,13 +122,3 @@ export class Scheduler implements IScheduler {
     return addTemplateFn;
   }
 }
-
-export function createScheduler<T extends SchedulerOptions>(
-  options: T
-): Scheduler {
-  return new Scheduler(options);
-}
-
-export type { SchedulerOptions } from "./scheduler-options.js";
-
-export default createScheduler;

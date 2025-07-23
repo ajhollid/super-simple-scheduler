@@ -12,6 +12,7 @@ export class MongoStore implements IStore {
   private uri: string;
   private logger: Logger;
   private templates = new Map<string, (data?: any) => void | Promise<void>>();
+  private isConnected: boolean = false;
 
   constructor(options: MongoStoreOptions, logger: Logger) {
     this.uri = options.uri;
@@ -20,13 +21,18 @@ export class MongoStore implements IStore {
 
   async init(): Promise<boolean> {
     try {
+      if (mongoose.connection.readyState === 1) {
+        this.isConnected = true;
+        return true;
+      }
       await mongoose.connect(this.uri);
+      this.isConnected = true;
+      this.logger.info("Connected to MongoDB");
+      return true;
     } catch (error) {
       this.logger.error("Failed to connect to MongoDB", { error });
       return false;
     }
-    this.logger.info("Connected to MongoDB");
-    return true;
   }
 
   async addJob(job: IJob): Promise<boolean> {
@@ -106,7 +112,10 @@ export class MongoStore implements IStore {
 
   async close(): Promise<boolean> {
     try {
-      await mongoose.connection.close();
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.connection.close();
+      }
+      this.isConnected = false;
       this.templates.clear();
       return true;
     } catch (error) {
