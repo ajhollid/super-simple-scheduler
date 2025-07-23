@@ -25,6 +25,10 @@ export class RedisStore implements IStore {
 
   async init(maxWaitTime: number = 2000): Promise<boolean> {
     try {
+      if (this.redis) {
+        this.redis.removeAllListeners();
+        this.redis.disconnect();
+      }
       this.redis = new Redis(this.uri);
       this.redis.on("error", (error) => {
         this.logger.error("Redis error", { error });
@@ -183,12 +187,16 @@ export class RedisStore implements IStore {
 
   async close(): Promise<boolean> {
     try {
+      this.templates.clear();
+
       if (!this.redis) {
         return true;
       }
+
+      this.redis.removeAllListeners();
       this.redis.disconnect();
-      await this.redis.quit();
-      this.templates.clear();
+      this.redis = null;
+      this.isConnected = false;
       return true;
     } catch (error) {
       this.logger.error("Failed to close Redis connection", { error });
