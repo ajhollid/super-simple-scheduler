@@ -21,7 +21,7 @@ A lightweight and easy-to-use job scheduler for Node.js with support for repeate
 - Written in TypeScript with type definitions
 - Job pausing, resuming, and removal
 - Comprehensive logging with Winston
-- Multiple storage backends (In-Memory, MongoDB, Redis)
+- Fast in-memory storage backend
 - Async/await API throughout
 - ES Module support
 
@@ -39,11 +39,9 @@ The package includes full TypeScript support with type definitions. You can impo
 import { Scheduler, SchedulerOptions } from "super-simple-scheduler";
 
 const options: SchedulerOptions = {
-  storeType: "inMemory",
   logLevel: "info",
   dev: true,
   processEvery: 1000,
-  dbUri: "",
 };
 
 const scheduler = new Scheduler(options);
@@ -56,7 +54,6 @@ import { Scheduler, SchedulerOptions } from "super-simple-scheduler";
 
 // Create a scheduler instance
 const scheduler = new Scheduler({
-  storeType: "inMemory", // or "mongo" or "redis"
   logLevel: "info",
   dev: false,
   processEvery: 1000, // Process jobs every 1 second
@@ -93,27 +90,14 @@ new Scheduler(options: SchedulerOptions)
 
 **Parameters:**
 
-- `options.storeType`: Storage backend to use ('inMemory', 'mongo', 'redis'). Default: 'inMemory'
 - `options.logLevel` (optional): Logging level ('none', 'debug', 'info', 'warn', 'error'). Default: 'info'
 - `options.dev` (optional): Development mode flag. Default: false
 - `options.processEvery` (optional): Interval in milliseconds to process jobs. Default: 1000
-- `options.dbUri` (optional): Database connection URI for MongoDB or Redis. Required when `storeType` is 'mongo' or 'redis'
 
 **Example:**
 
 ```typescript
 const scheduler = new Scheduler({
-  storeType: "mongo",
-  dbUri: "mongodb://localhost:27017/myapp",
-  logLevel: "debug",
-  dev: true,
-  processEvery: 5000, // Process every 5 seconds
-});
-
-// Or with Redis
-const scheduler = new Scheduler({
-  storeType: "redis",
-  dbUri: "redis://localhost:6379",
   logLevel: "debug",
   dev: true,
   processEvery: 5000, // Process every 5 seconds
@@ -139,7 +123,7 @@ if (success) {
 
 ##### `stop(): Promise<boolean>`
 
-Stops the scheduler and clears the processing interval. Also closes the database connection if using MongoDB or Redis.
+Stops the scheduler and clears the processing interval.
 
 **Returns:** `Promise<boolean>` - `true` if stopped successfully
 
@@ -384,15 +368,15 @@ interface IJob {
 }
 ```
 
-## Storage Backends
+## Storage
 
-The scheduler supports multiple storage backends:
+The scheduler uses a fast in-memory storage backend that's perfect for most use cases:
 
-### In-Memory Store (Default)
+### In-Memory Store
 
 ```typescript
 const scheduler = new Scheduler({
-  storeType: "inMemory",
+  logLevel: "info",
 });
 ```
 
@@ -401,61 +385,14 @@ const scheduler = new Scheduler({
 - Fast and lightweight
 - No external dependencies
 - Perfect for development and testing
+- Simple setup and configuration
 
 **Cons:**
 
 - Jobs are lost on process restart
 - Not suitable for production with multiple instances
 
-### MongoDB Store
-
-```typescript
-const scheduler = new Scheduler({
-  storeType: "mongo",
-  dbUri: "mongodb://localhost:27017/myapp",
-  logLevel: "info",
-});
-```
-
-**Pros:**
-
-- Persistent storage
-- Survives process restarts
-- Suitable for production
-- Supports multiple scheduler instances
-
-**Cons:**
-
-- Requires MongoDB instance
-- Additional dependency (Mongoose)
-
-**Note:** You must provide a `dbUri` when using the MongoDB store. The connection URI should point to your MongoDB instance and include the database name.
-
-### Redis Store
-
-```typescript
-const scheduler = new Scheduler({
-  storeType: "redis",
-  dbUri: "redis://localhost:6379",
-  logLevel: "info",
-});
-```
-
-**Pros:**
-
-- High-performance in-memory storage with persistence
-- Survives process restarts
-- Suitable for production
-- Supports multiple scheduler instances
-- Atomic operations for job management
-- Fast job retrieval and updates
-
-**Cons:**
-
-- Requires Redis instance
-- Additional dependency (ioredis)
-
-**Note:** You must provide a `dbUri` when using the Redis store. The connection URI should point to your Redis instance. Redis stores jobs as JSON strings with efficient bulk operations for job retrieval.
+**Note:** For production applications that need persistence or multiple instances, consider implementing your own storage backend or using a job queue system like Bull or Agenda.
 
 ## Job Execution Logic
 
@@ -563,45 +500,12 @@ const scheduler = new Scheduler({
 
 ## Examples
 
-### Email Scheduler with MongoDB
+### Email Scheduler
 
 ```typescript
 import { Scheduler } from "super-simple-scheduler";
 
 const scheduler = new Scheduler({
-  storeType: "mongo",
-  dbUri: "mongodb://localhost:27017/email_scheduler",
-  logLevel: "info",
-});
-
-// Email template
-await scheduler.addTemplate("sendEmail", async (data) => {
-  await sendEmail(data.to, data.subject, data.body);
-});
-
-// Daily digest
-await scheduler.addJob({
-  id: "daily-digest",
-  template: "sendEmail",
-  repeat: 24 * 60 * 60 * 1000,
-  data: {
-    to: "users@company.com",
-    subject: "Daily Digest",
-    body: "Here is your daily summary...",
-  },
-});
-
-await scheduler.start();
-```
-
-### Email Scheduler with Redis
-
-```typescript
-import { Scheduler } from "super-simple-scheduler";
-
-const scheduler = new Scheduler({
-  storeType: "redis",
-  dbUri: "redis://localhost:6379",
   logLevel: "info",
 });
 
@@ -629,7 +533,6 @@ await scheduler.start();
 
 ```typescript
 const scheduler = new Scheduler({
-  storeType: "inMemory",
   logLevel: "debug",
 });
 
@@ -665,7 +568,7 @@ await scheduler.start();
 ### Job Management Example
 
 ```typescript
-const scheduler = new Scheduler({ storeType: "inMemory" });
+const scheduler = new Scheduler({});
 
 // Add a job
 await scheduler.addJob({

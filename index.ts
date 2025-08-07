@@ -2,12 +2,9 @@ import Scheduler from "./src/scheduler/index.js";
 
 const doStuff = async () => {
   const scheduler = new Scheduler({
-    storeType: "inMemory",
     logLevel: "info",
     dev: true,
     processEvery: 1000,
-    dbUri: "redis://localhost:6379",
-    // dbUri: "mongodb://localhost:27017/uptime_db",
   });
 
   await scheduler.addTemplate("test", (data) => {
