@@ -383,7 +383,7 @@ const scheduler = new Scheduler({
 **Pros:**
 
 - Fast and lightweight
-- No external dependencies
+- Minimal external dependencies
 - Perfect for development and testing
 - Simple setup and configuration
 
