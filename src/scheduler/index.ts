@@ -16,8 +16,6 @@ import { flushJobs as flushJobsFn } from "./flush-jobs.js";
 import { pauseJob as pauseJobFn } from "./pause-job.js";
 import { resumeJob as resumeJobFn } from "./resume-job.js";
 import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
-import { MongoStore } from "../store/mongo/mongoStore.js";
-import { RedisStore } from "../store/redis/redisStore.js";
 
 export default class Scheduler implements IScheduler {
   public processEvery: number;
@@ -26,32 +24,12 @@ export default class Scheduler implements IScheduler {
   public logger: Logger;
 
   constructor(options: SchedulerOptions) {
-    const {
-      storeType = "inMemory",
-      logLevel = "info",
-      dev = false,
-      processEvery = 1000,
-      dbUri = "",
-    } = options;
+    const { logLevel = "info", dev = false, processEvery = 1000 } = options;
 
     this.processEvery = processEvery;
     this.intervalId = null;
     this.logger = new Logger(logLevel, dev);
-
-    switch (storeType) {
-      case "inMemory":
-        this.store = new InMemoryStore();
-        break;
-      case "mongo":
-        this.store = new MongoStore({ uri: dbUri }, this.logger);
-        break;
-      case "redis":
-        this.store = new RedisStore({ uri: dbUri }, this.logger);
-        break;
-      default:
-        this.store = new InMemoryStore();
-        break;
-    }
+    this.store = new InMemoryStore();
   }
 
   get start(): () => Promise<boolean> {

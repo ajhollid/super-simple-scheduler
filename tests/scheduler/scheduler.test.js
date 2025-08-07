@@ -1,6 +1,4 @@
 import { jest } from "@jest/globals";
-import { MongoStore } from "../../src/store/mongo/mongoStore.js";
-import { RedisStore } from "../../src/store/redis/redisStore.js";
 import { InMemoryStore } from "../../src/store/inMemory/inMemoryStore.js";
 
 let mockStart;
@@ -85,7 +83,7 @@ describe("Scheduler", () => {
   let scheduler;
 
   beforeEach(() => {
-    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
+    scheduler = new Scheduler({ dev: true });
     mockStart.mockClear();
     mockStop.mockClear();
     mockProcessJobs.mockClear();
@@ -315,48 +313,6 @@ describe("Scheduler", () => {
   });
 });
 
-describe("Scheduler - Mongo", () => {
-  let scheduler;
-
-  beforeEach(() => {
-    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
-    mockStart.mockClear();
-    mockStop.mockClear();
-    mockProcessJobs.mockClear();
-    mockAddJob.mockClear();
-    mockPauseJob.mockClear();
-    mockResumeJob.mockClear();
-    mockGetJob.mockClear();
-    mockGetJobs.mockClear();
-  });
-
-  it("should create a new scheduler with mongo store", () => {
-    const scheduler = new Scheduler({ storeType: "mongo", dev: true });
-    expect(scheduler.store).toBeInstanceOf(MongoStore);
-  });
-});
-
-describe("Scheduler - Redis", () => {
-  let scheduler;
-
-  beforeEach(() => {
-    scheduler = new Scheduler({ storeType: "inMemory", dev: true });
-    mockStart.mockClear();
-    mockStop.mockClear();
-    mockProcessJobs.mockClear();
-    mockAddJob.mockClear();
-    mockPauseJob.mockClear();
-    mockResumeJob.mockClear();
-    mockGetJob.mockClear();
-    mockGetJobs.mockClear();
-  });
-
-  it("should create a new scheduler with redis store", () => {
-    const scheduler = new Scheduler({ storeType: "redis", dev: true });
-    expect(scheduler.store).toBeInstanceOf(RedisStore);
-  });
-});
-
 describe("Scheduler - Default and Optional Values", () => {
   let scheduler;
 
@@ -372,7 +328,7 @@ describe("Scheduler - Default and Optional Values", () => {
     mockGetJobs.mockClear();
   });
   it("should use default values when options are not provided", () => {
-    const scheduler = new Scheduler({ storeType: "inMemory" });
+    const scheduler = new Scheduler({});
 
     expect(scheduler.processEvery).toBe(1000);
     expect(scheduler.intervalId).toBeNull();
@@ -382,11 +338,9 @@ describe("Scheduler - Default and Optional Values", () => {
 
   it("should use custom values when options are provided", () => {
     const scheduler = new Scheduler({
-      storeType: "inMemory",
       logLevel: "debug",
       dev: true,
       processEvery: 5000,
-      dbUri: "test-uri",
     });
 
     expect(scheduler.processEvery).toBe(5000);
@@ -395,13 +349,11 @@ describe("Scheduler - Default and Optional Values", () => {
     expect(scheduler.store).toBeDefined();
   });
 
-  it("should use inMemory db when invalid storeType provided", () => {
+  it("should use inMemory db", () => {
     const scheduler = new Scheduler({
-      storeType: "invalid",
       logLevel: "debug",
       dev: true,
       processEvery: 5000,
-      dbUri: "test-uri",
     });
 
     expect(scheduler.processEvery).toBe(5000);
