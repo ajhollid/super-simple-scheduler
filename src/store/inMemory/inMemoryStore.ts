@@ -22,7 +22,10 @@ export class InMemoryStore implements IStore {
     return this.jobs.delete(id);
   }
 
-  async updateJob(id: string, updates: Partial<IJob>): Promise<boolean> {
+  async updateJob(
+    id: string | number,
+    updates: Partial<IJob>
+  ): Promise<boolean> {
     if (!this.jobs.has(id)) {
       return false;
     }
