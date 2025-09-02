@@ -17,23 +17,4 @@ export interface IStore {
     name: string
   ): Promise<((data?: any) => void | Promise<void>) | null>;
   close(): Promise<boolean>;
-
-  incrementJobCounters(
-    id: string | number,
-    increments: {
-      runCount?: number;
-      failCount?: number;
-    }
-  ): Promise<boolean>;
-
-  setJobExecutionFields(
-    id: string | number,
-    fields: {
-      lastRunAt?: number;
-      lastFinishedAt?: number;
-      lockedAt?: number | null;
-      lastFailedAt?: number;
-      lastFailReason?: string;
-    }
-  ): Promise<boolean>;
 }

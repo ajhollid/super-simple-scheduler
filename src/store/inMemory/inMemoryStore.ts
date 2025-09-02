@@ -63,45 +63,4 @@ export class InMemoryStore implements IStore {
     this.templates.clear();
     return true;
   }
-
-  async incrementJobCounters(
-    id: string | number,
-    increments: {
-      runCount?: number;
-      failCount?: number;
-    }
-  ): Promise<boolean> {
-    const job = this.jobs.get(id);
-    if (!job) return false;
-
-    job.runCount = (job.runCount ?? 0) + (increments.runCount ?? 0);
-    job.failCount = (job.failCount ?? 0) + (increments.failCount ?? 0);
-
-    return true;
-  }
-
-  async setJobExecutionFields(
-    id: string | number,
-    fields: {
-      lastRunAt?: number;
-      lastFinishedAt?: number;
-      lockedAt?: number | null;
-      lastFailedAt?: number;
-      lastFailReason?: string;
-    }
-  ): Promise<boolean> {
-    const job = this.jobs.get(id);
-    if (!job) return false;
-
-    if (fields.lastRunAt !== undefined) job.lastRunAt = fields.lastRunAt;
-    if (fields.lastFinishedAt !== undefined)
-      job.lastFinishedAt = fields.lastFinishedAt;
-    if (fields.lockedAt !== undefined) job.lockedAt = fields.lockedAt;
-    if (fields.lastFailedAt !== undefined)
-      job.lastFailedAt = fields.lastFailedAt;
-    if (fields.lastFailReason !== undefined)
-      job.lastFailReason = fields.lastFailReason;
-
-    return true;
-  }
 }
