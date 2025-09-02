@@ -66,39 +66,35 @@ export async function processNextJob(
   let success = false;
 
   // Acquire lock
-  const lockTime = Date.now();
-  await this.store.setJobExecutionFields(job.id, { lockedAt: lockTime });
-
-  let lastRunAt = job.lastRunAt ?? 0;
-  let lastFinishedAt = job.lastFinishedAt ?? 0;
-  let lastFailedAt = job.lastFailedAt ?? 0;
-  let lastFailReason = job.lastFailReason ?? "";
-  let runIncrement = 0;
-  let failIncrement = 0;
+  job.lockedAt = Date.now();
+  await this.store.updateJob(job.id, { lockedAt: job.lockedAt });
 
   while (attempts < maxRetries) {
     attempts++;
     try {
-      lastRunAt = Date.now();
-      runIncrement = 1;
+      job.lastRunAt = Date.now();
+      job.runCount = (job.runCount ?? 0) + 1;
       await jobFn(job.data);
       success = true;
       break;
     } catch (error) {
-      failIncrement = 1;
-      lastFailedAt = Date.now();
-      lastFailReason = error instanceof Error ? error.message : "Unknown error";
+      job.failCount = (job.failCount ?? 0) + 1;
+      job.lastFailedAt = Date.now();
+      job.lastFailReason =
+        error instanceof Error ? error.message : "Unknown error";
       this.logger.warn(`Job failed (attempt ${attempts}/${maxRetries})`, {
         job,
       });
     } finally {
-      lastFinishedAt = Date.now();
+      job.lastFinishedAt = Date.now();
     }
   }
 
+  // Release lock
+  job.lockedAt = null;
+
   if (job.repeat === null) {
     await this.store.removeJob(job.id);
-    return;
   }
 
   if (!success) {
@@ -106,17 +102,5 @@ export async function processNextJob(
       `Job failed after ${maxRetries} immediate attempts, rescheduling.`
     );
   }
-
-  await this.store.setJobExecutionFields(job.id, {
-    lastRunAt,
-    lastFinishedAt,
-    lockedAt: null, // Release lock
-    ...(lastFailedAt && { lastFailedAt }),
-    ...(lastFailReason && { lastFailReason }),
-  });
-
-  await this.store.incrementJobCounters(job.id, {
-    runCount: runIncrement,
-    failCount: failIncrement,
-  });
+  await this.store.updateJob(job.id, { ...job });
 }
