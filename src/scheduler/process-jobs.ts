@@ -73,18 +73,20 @@ export async function processNextJob(
     attempts++;
     try {
       const existingJob = await this.store.getJob(job.id);
-      if (!existingJob) {
-        this.logger.info(
-          `Job with id ${job.id} has been removed, aborting execution.`
-        );
-        break;
-      }
       job.lastRunAt = Date.now();
       job.runCount = (job.runCount ?? 0) + 1;
       await jobFn(job.data);
       success = true;
       break;
     } catch (error) {
+      const existingJob = await this.store.getJob(job.id);
+      if (!existingJob) {
+        this.logger.info(
+          `Job with id ${job.id} has been removed, aborting execution.`
+        );
+        success = true;
+        break;
+      }
       job.failCount = (job.failCount ?? 0) + 1;
       job.lastFailedAt = Date.now();
       job.lastFailReason =
