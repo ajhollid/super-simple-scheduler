@@ -72,6 +72,13 @@ export async function processNextJob(
   while (attempts < maxRetries) {
     attempts++;
     try {
+      const existingJob = await this.store.getJob(job.id);
+      if (!existingJob) {
+        this.logger.info(
+          `Job with id ${job.id} has been removed, aborting execution.`
+        );
+        break;
+      }
       job.lastRunAt = Date.now();
       job.runCount = (job.runCount ?? 0) + 1;
       await jobFn(job.data);
