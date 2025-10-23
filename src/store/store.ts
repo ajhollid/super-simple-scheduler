@@ -3,7 +3,6 @@ import { IJob } from "../job/job.js";
 export interface IStore {
   init(maxWaitTime?: number): Promise<boolean>;
   addJob(job: IJob): Promise<boolean>;
-  getJob(id: string | number): Promise<IJob | null>;
   removeJob(id: string | number): Promise<boolean>;
   updateJob(id: string | number, updates: Partial<IJob>): Promise<boolean>;
   getJob(id: string | number): Promise<IJob | null>;
