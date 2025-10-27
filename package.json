@@ -1,6 +1,6 @@
 {
   "name": "super-simple-scheduler",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "A simple scheduler for Node.js",
   "main": "dist/scheduler/index.js",
   "types": "dist/scheduler/index.d.ts",
@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "dev": "npx nodemon index.ts",
+    "dev": "nodemon --watch src --ext ts --exec tsx index.ts",
     "test-coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "test-in-memory-store": "node --experimental-vm-modules node_modules/.bin/jest tests/store/in-memory.test.js --coverage",
@@ -38,6 +38,7 @@
     "nodemon": "3.1.10",
     "ts-jest": "29.4.0",
     "ts-node": "10.9.2",
+    "tsx": "4.20.6",
     "typescript": "5.8.3"
   }
 }
