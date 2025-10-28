@@ -25,6 +25,8 @@ export async function processJobs(this: IScheduler) {
       })
       .finally(() => running.delete(p));
 
+    running.add(p);
+
     if (running.size >= concurrency) {
       await Promise.race(running);
     }
