@@ -105,7 +105,9 @@ export async function processNextJob(
       job.lastFailReason =
         error instanceof Error ? error.message : "Unknown error";
       this.logger.warn(`Job failed (attempt ${attempts}/${maxRetries})`, {
-        job,
+        id: job.id,
+        failReason: job.lastFailReason,
+        failedAt: job.lastFailedAt,
       });
     } finally {
       job.lastFinishedAt = Date.now();
