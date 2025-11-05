@@ -1,5 +1,16 @@
 import Scheduler from "./src/scheduler/index.js";
 
+const googleSites = [
+  "https://www.google.com",
+  "https://news.google.com",
+  "https://maps.google.com",
+  "https://translate.google.com",
+  "https://scholar.google.com",
+  "https://drive.google.com",
+  "https://photos.google.com",
+  "https://calendar.google.com",
+];
+
 const doStuff = async () => {
   const scheduler = new Scheduler({
     logLevel: "info",
@@ -7,37 +18,86 @@ const doStuff = async () => {
     processEvery: 1000,
   });
 
-  await scheduler.addTemplate("test", (data) => {
-    const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
+  // await scheduler.addTemplate("test", (data) => {
+  //   const delay = Math.floor(Math.random() * 1000); // 0–4999 ms
 
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        console.log(data);
-        resolve();
-        // reject(new Error("test error"));
-      }, delay);
-    });
-  });
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(() => {
+  //       console.log(data);
+  //       resolve();
+  //       // reject(new Error("test error"));
+  //     }, delay);
+  //   });
+  // });
 
-  await scheduler.addTemplate("test2", (data) => {
-    console.log("running job 2");
-  });
+  // await scheduler.addTemplate("test2", (data) => {
+  //   console.log("running job 2");
+  // });
+  // for (let i = 0; i < 1; i++) {
+  //   const res = await scheduler.addJob({
+  //     id: `test-${i}`,
+  //     template: "test",
+  //     repeat: 2000,
+  //     data: `test ${i}`,
+  //     active: i % 2 === 0,
+  //   });
+  // }
   await scheduler.start();
-  for (let i = 0; i < 1; i++) {
-    const res = await scheduler.addJob({
-      id: `test-${i}`,
-      template: "test",
-      repeat: 2000,
-      data: `test ${i}`,
-      active: i % 2 === 0,
-    });
-  }
 
-  for (let i = 0; i < 1; i++) {
+  await scheduler.addTemplate("randomGoogle", async (data) => {
+    const googleSites = [
+      "https://www.google.com",
+      // "https://news.google.com",
+      // "https://maps.google.com",
+      // "https://translate.google.com",
+      // "https://scholar.google.com",
+      // "https://drive.google.com",
+      // "https://photos.google.com",
+      // "https://calendar.google.com",
+    ];
+
+    const url = googleSites[Math.floor(Math.random() * googleSites.length)];
+    const start = Date.now();
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      const duration = Date.now() - start;
+      console.log(
+        `[${new Date().toISOString()}] GET ${url} → ${
+          res.status
+        } (${duration} ms)`
+      );
+
+      return { url, status: res.status, duration };
+    } catch (err) {
+      const duration = Date.now() - start;
+      console.error(
+        `[${new Date().toISOString()}] Error fetching ${url} after ${duration} ms:`,
+        err.name === "AbortError" ? "Timeout" : err.message
+      );
+      throw err;
+    }
+  });
+
+  // for (let i = 0; i < 1; i++) {
+  //   await scheduler.addJob({
+  //     id: `test2-${i}`,
+  //     startAt: Date.now() + 5000,
+  //     template: "test2",
+  //     data: `test ${i}`,
+  //     active: i % 2 === 0,
+  //   });
+  // }
+  for (let i = 0; i < 1000; i++) {
     await scheduler.addJob({
       id: `test2-${i}`,
-      startAt: Date.now() + 5000,
-      template: "test2",
+      startAt: Date.now(),
+      template: "randomGoogle",
       data: `test ${i}`,
       active: i % 2 === 0,
     });
