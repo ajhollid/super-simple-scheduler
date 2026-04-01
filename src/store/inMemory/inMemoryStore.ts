@@ -9,13 +9,33 @@ export class InMemoryStore implements IStore {
     return true;
   }
 
+  async lockJob(id: string | number): Promise<boolean> {
+    const job = this.jobs.get(id);
+    if (!job || job.lockedAt) {
+      return false;
+    }
+
+    job.lockedAt = Date.now();
+    return true;
+  }
+
+  async unlockJob(id: string | number): Promise<boolean> {
+    const job = this.jobs.get(id);
+    if (!job || !job.lockedAt) {
+      return false;
+    }
+    job.lockedAt = null;
+    return true;
+  }
+
   async addJob(job: IJob): Promise<boolean> {
     this.jobs.set(job.id, job);
     return true;
   }
 
   async getJob(id: string | number): Promise<IJob | null> {
-    return this.jobs.get(id) || null;
+    const job = this.jobs.get(id);
+    return job ? { ...job } : null;
   }
 
   async removeJob(id: string | number): Promise<boolean> {
@@ -24,31 +44,32 @@ export class InMemoryStore implements IStore {
 
   async updateJob(
     id: string | number,
-    updates: Partial<IJob>
+    updates: Partial<IJob>,
   ): Promise<boolean> {
-    if (!this.jobs.has(id)) {
+    const existing = this.jobs.get(id);
+    if (!existing) {
       return false;
     }
 
-    const updatedJob = { ...this.jobs.get(id), ...updates } as IJob;
+    const updatedJob: IJob = { ...existing, ...updates };
     this.jobs.set(id, updatedJob);
     return true;
   }
 
   async getJobs(): Promise<IJob[]> {
-    return Array.from(this.jobs.values());
+    return Array.from(this.jobs.values()).map((job) => ({ ...job }));
   }
 
   async addTemplate(
     name: string,
-    template: (data?: any) => void | Promise<void>
+    template: (data?: any) => void | Promise<void>,
   ): Promise<boolean> {
     const result = this.templates.set(name, template);
     return result.has(name);
   }
 
   async getTemplate(
-    name: string
+    name: string,
   ): Promise<((data?: any) => void | Promise<void>) | null> {
     return this.templates.get(name) ?? null;
   }
