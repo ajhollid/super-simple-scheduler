@@ -70,17 +70,15 @@ export async function processNextJob(
   job: IJob,
   jobFn: (data?: any) => void | Promise<void>,
 ): Promise<void> {
-  if (job.lockedAt) {
+  // Acquire lock
+  const locked = await this.store.lockJob(job.id);
+  if (!locked) {
     return;
   }
 
   const maxRetries = job.maxRetries ?? 3;
   let attempts = 0;
   let success = false;
-
-  // Acquire lock
-  job.lockedAt = Date.now();
-  await this.store.updateJob(job.id, { lockedAt: job.lockedAt });
 
   while (attempts < maxRetries) {
     attempts++;
@@ -114,6 +112,7 @@ export async function processNextJob(
   }
 
   // Release lock
+  await this.store.unlockJob(job.id);
   job.lockedAt = null;
 
   if (!success) {

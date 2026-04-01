@@ -2,6 +2,8 @@ import { IJob } from "../job/job.js";
 
 export interface IStore {
   init(maxWaitTime?: number): Promise<boolean>;
+  lockJob(id: string | number): Promise<boolean>;
+  unlockJob(id: string | number): Promise<boolean>;
   addJob(job: IJob): Promise<boolean>;
   removeJob(id: string | number): Promise<boolean>;
   updateJob(id: string | number, updates: Partial<IJob>): Promise<boolean>;
@@ -10,11 +12,11 @@ export interface IStore {
   flushJobs(): Promise<boolean>;
   addTemplate(
     name: string,
-    template: (data?: any) => void | Promise<void>
+    template: (data?: any) => void | Promise<void>,
   ): Promise<boolean>;
 
   getTemplate(
-    name: string
+    name: string,
   ): Promise<((data?: any) => void | Promise<void>) | null>;
   close(): Promise<boolean>;
 }
