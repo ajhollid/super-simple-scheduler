@@ -1,4 +1,4 @@
-import { addJob } from "../../src/scheduler/add-job.js";
+import { addJob } from "../../../src/scheduler/add-job.js";
 import { jest } from "@jest/globals";
 
 describe("addJob function", () => {

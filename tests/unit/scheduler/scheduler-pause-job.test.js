@@ -1,4 +1,4 @@
-import { pauseJob } from "../../src/scheduler/pause-job.js";
+import { pauseJob } from "../../../src/scheduler/pause-job.js";
 import { jest } from "@jest/globals";
 
 describe("pauseJob function", () => {

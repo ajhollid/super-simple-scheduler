@@ -68,26 +68,29 @@ export function shouldJobRun(this: IScheduler, job: IJob): boolean {
 export async function processNextJob(
   this: IScheduler,
   job: IJob,
-  jobFn: (data?: any) => void | Promise<void>
+  jobFn: (data?: any) => void | Promise<void>,
 ): Promise<void> {
-  if (job.lockedAt) {
+  // Acquire lock
+  const locked = await this.store.lockJob(job.id);
+  if (!locked) {
     return;
   }
 
   const maxRetries = job.maxRetries ?? 3;
   let attempts = 0;
   let success = false;
-
-  // Acquire lock
-  job.lockedAt = Date.now();
-  await this.store.updateJob(job.id, { lockedAt: job.lockedAt });
+  let runCount = job.runCount ?? 0;
+  let failCount = job.failCount ?? 0;
+  let lastRunAt: number | null = null;
+  let lastFinishedAt: number | null = null;
+  let lastFailedAt: number | null = null;
+  let lastFailReason: string | null = null;
 
   while (attempts < maxRetries) {
     attempts++;
     try {
-      const existingJob = await this.store.getJob(job.id);
-      job.lastRunAt = Date.now();
-      job.runCount = (job.runCount ?? 0) + 1;
+      lastRunAt = Date.now();
+      runCount++;
       await jobFn(job.data);
       success = true;
       break;
@@ -95,36 +98,45 @@ export async function processNextJob(
       const existingJob = await this.store.getJob(job.id);
       if (!existingJob) {
         this.logger.info(
-          `Job with id ${job.id} has been removed, aborting execution.`
+          `Job with id ${job.id} has been removed, aborting execution.`,
         );
         success = true;
         break;
       }
-      job.failCount = (job.failCount ?? 0) + 1;
-      job.lastFailedAt = Date.now();
-      job.lastFailReason =
-        error instanceof Error ? error.message : "Unknown error";
+      failCount++;
+      lastFailedAt = Date.now();
+      lastFailReason = error instanceof Error ? error.message : "Unknown error";
       this.logger.warn(`Job failed (attempt ${attempts}/${maxRetries})`, {
         id: job.id,
-        failReason: job.lastFailReason,
-        failedAt: job.lastFailedAt,
+        failReason: lastFailReason,
+        failedAt: lastFailedAt,
       });
     } finally {
-      job.lastFinishedAt = Date.now();
+      lastFinishedAt = Date.now();
     }
   }
 
   // Release lock
+  await this.store.unlockJob(job.id);
   job.lockedAt = null;
-
-  if (job.repeat === null) {
-    await this.store.removeJob(job.id);
-  }
 
   if (!success) {
     this.logger.error(
-      `Job failed after ${maxRetries} immediate attempts, rescheduling.`
+      `Job failed after ${maxRetries} immediate attempts, job will be requeued on schedule`,
     );
   }
-  await this.store.updateJob(job.id, { ...job });
+
+  await this.store.updateJob(job.id, {
+    lastRunAt,
+    lastFinishedAt,
+    lastFailedAt,
+    lastFailReason,
+    runCount,
+    failCount,
+    lockedAt: null,
+  });
+
+  if (!job.repeat) {
+    await this.store.removeJob(job.id);
+  }
 }
