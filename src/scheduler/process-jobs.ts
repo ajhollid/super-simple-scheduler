@@ -68,7 +68,7 @@ export function shouldJobRun(this: IScheduler, job: IJob): boolean {
 export async function processNextJob(
   this: IScheduler,
   job: IJob,
-  jobFn: (data?: any) => void | Promise<void>
+  jobFn: (data?: any) => void | Promise<void>,
 ): Promise<void> {
   if (job.lockedAt) {
     return;
@@ -85,7 +85,6 @@ export async function processNextJob(
   while (attempts < maxRetries) {
     attempts++;
     try {
-      const existingJob = await this.store.getJob(job.id);
       job.lastRunAt = Date.now();
       job.runCount = (job.runCount ?? 0) + 1;
       await jobFn(job.data);
@@ -95,7 +94,7 @@ export async function processNextJob(
       const existingJob = await this.store.getJob(job.id);
       if (!existingJob) {
         this.logger.info(
-          `Job with id ${job.id} has been removed, aborting execution.`
+          `Job with id ${job.id} has been removed, aborting execution.`,
         );
         success = true;
         break;
@@ -115,14 +114,13 @@ export async function processNextJob(
   // Release lock
   job.lockedAt = null;
 
-  if (job.repeat === null) {
-    await this.store.removeJob(job.id);
-  }
-
   if (!success) {
     this.logger.error(
-      `Job failed after ${maxRetries} immediate attempts, rescheduling.`
+      `Job failed after ${maxRetries} immediate attempts, job will be requeued on schedule`,
     );
   }
   await this.store.updateJob(job.id, { ...job });
+  if (!job.repeat) {
+    await this.store.removeJob(job.id);
+  }
 }
