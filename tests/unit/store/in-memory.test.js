@@ -1,4 +1,4 @@
-import { InMemoryStore } from "../../src/store/inMemory/inMemoryStore.js";
+import { InMemoryStore } from "../../../src/store/inMemory/inMemoryStore.js";
 
 describe("InMemoryStore", () => {
   let store;
@@ -11,6 +11,50 @@ describe("InMemoryStore", () => {
     it("should return true", async () => {
       const result = await store.init();
       expect(result).toBe(true);
+    });
+  });
+
+  describe("lockJob", () => {
+    it("should return true and set lockedAt when job exists and is unlocked", async () => {
+      await store.addJob({ id: "1", template: "test", active: true, lockedAt: null });
+      const result = await store.lockJob("1");
+      expect(result).toBe(true);
+      const job = await store.getJob("1");
+      expect(job.lockedAt).toEqual(expect.any(Number));
+    });
+
+    it("should return false if job does not exist", async () => {
+      const result = await store.lockJob("nonexistent");
+      expect(result).toBe(false);
+    });
+
+    it("should return false if job is already locked", async () => {
+      await store.addJob({ id: "1", template: "test", active: true, lockedAt: null });
+      await store.lockJob("1");
+      const result = await store.lockJob("1");
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("unlockJob", () => {
+    it("should return true and clear lockedAt when job is locked", async () => {
+      await store.addJob({ id: "1", template: "test", active: true, lockedAt: null });
+      await store.lockJob("1");
+      const result = await store.unlockJob("1");
+      expect(result).toBe(true);
+      const job = await store.getJob("1");
+      expect(job.lockedAt).toBeNull();
+    });
+
+    it("should return false if job does not exist", async () => {
+      const result = await store.unlockJob("nonexistent");
+      expect(result).toBe(false);
+    });
+
+    it("should return false if job is not locked", async () => {
+      await store.addJob({ id: "1", template: "test", active: true, lockedAt: null });
+      const result = await store.unlockJob("1");
+      expect(result).toBe(false);
     });
   });
 

@@ -1,4 +1,4 @@
-import { updateJob } from "../../src/scheduler/update-job.js";
+import { updateJob } from "../../../src/scheduler/update-job.js";
 import { jest } from "@jest/globals";
 
 describe("updateJob function", () => {
@@ -17,20 +17,20 @@ describe("updateJob function", () => {
   it("should return true if the job is updated", async () => {
     mockStore.updateJob.mockResolvedValue(true);
 
-    const result = await updateJob.call(context, "job1", {
-      name: "new name",
-    });
+    const updates = { name: "new name" };
+    const result = await updateJob.call(context, "job1", updates);
 
     expect(result).toBe(true);
+    expect(mockStore.updateJob).toHaveBeenCalledWith("job1", updates);
   });
 
   it("should return false if the job is not updated", async () => {
     mockStore.updateJob.mockResolvedValue(false);
 
-    const result = await updateJob.call(context, "job1", {
-      name: "new name",
-    });
+    const updates = { name: "new name" };
+    const result = await updateJob.call(context, "job1", updates);
 
     expect(result).toBe(false);
+    expect(mockStore.updateJob).toHaveBeenCalledWith("job1", updates);
   });
 });

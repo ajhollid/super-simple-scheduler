@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { InMemoryStore } from "../../src/store/inMemory/inMemoryStore.js";
+import { InMemoryStore } from "../../../src/store/inMemory/inMemoryStore.js";
 
 let mockStart;
 let mockStop;
@@ -14,68 +14,68 @@ let mockFlushJobs;
 let mockAddTemplate;
 let Scheduler;
 
-jest.unstable_mockModule("../../src/scheduler/start.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/start.js", () => {
   mockStart = jest.fn().mockResolvedValue(true);
   return { start: mockStart };
 });
 
-jest.unstable_mockModule("../../src/scheduler/stop.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/stop.js", () => {
   mockStop = jest.fn().mockResolvedValue(true);
   return { stop: mockStop };
 });
 
-jest.unstable_mockModule("../../src/scheduler/process-jobs.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/process-jobs.js", () => {
   mockProcessJobs = jest.fn().mockResolvedValue();
   return { processJobs: mockProcessJobs };
 });
 
-jest.unstable_mockModule("../../src/scheduler/add-job.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/add-job.js", () => {
   mockAddJob = jest.fn().mockResolvedValue(true);
   return { addJob: mockAddJob };
 });
 
-jest.unstable_mockModule("../../src/scheduler/pause-job.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/pause-job.js", () => {
   mockPauseJob = jest.fn().mockResolvedValue(true);
   return { pauseJob: mockPauseJob };
 });
 
-jest.unstable_mockModule("../../src/scheduler/resume-job.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/resume-job.js", () => {
   mockResumeJob = jest.fn().mockResolvedValue(true);
   return { resumeJob: mockResumeJob };
 });
 
-jest.unstable_mockModule("../../src/scheduler/get-job.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/get-job.js", () => {
   mockGetJob = jest.fn();
   return { getJob: mockGetJob };
 });
 
-jest.unstable_mockModule("../../src/scheduler/get-jobs.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/get-jobs.js", () => {
   mockGetJobs = jest.fn();
   return { getJobs: mockGetJobs };
 });
 
-jest.unstable_mockModule("../../src/scheduler/remove-job.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/remove-job.js", () => {
   mockRemoveJob = jest.fn().mockResolvedValue(true);
   return { removeJob: mockRemoveJob };
 });
 
-jest.unstable_mockModule("../../src/scheduler/update-job.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/update-job.js", () => {
   mockUpdateJob = jest.fn().mockResolvedValue(true);
   return { updateJob: mockUpdateJob };
 });
 
-jest.unstable_mockModule("../../src/scheduler/flush-jobs.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/flush-jobs.js", () => {
   mockFlushJobs = jest.fn();
   return { flushJobs: mockFlushJobs };
 });
 
-jest.unstable_mockModule("../../src/scheduler/add-template.js", () => {
+jest.unstable_mockModule("../../../src/scheduler/add-template.js", () => {
   mockAddTemplate = jest.fn();
   return { addTemplate: mockAddTemplate };
 });
 
 beforeAll(async () => {
-  const module = await import("../../src/scheduler/index.js");
+  const module = await import("../../../src/scheduler/index.js");
   Scheduler = module.default;
 });
 
