@@ -15,7 +15,7 @@ export class InMemoryStore implements IStore {
       return false;
     }
 
-    job.lockedAt = Date.now();
+    this.jobs.set(id, structuredClone({ ...job, lockedAt: Date.now() }));
     return true;
   }
 
@@ -24,18 +24,18 @@ export class InMemoryStore implements IStore {
     if (!job || !job.lockedAt) {
       return false;
     }
-    job.lockedAt = null;
+    this.jobs.set(id, structuredClone({ ...job, lockedAt: null }));
     return true;
   }
 
   async addJob(job: IJob): Promise<boolean> {
-    this.jobs.set(job.id, job);
+    this.jobs.set(job.id, structuredClone(job));
     return true;
   }
 
   async getJob(id: string | number): Promise<IJob | null> {
     const job = this.jobs.get(id);
-    return job ? { ...job } : null;
+    return job ? structuredClone(job) : null;
   }
 
   async removeJob(id: string | number): Promise<boolean> {
@@ -51,13 +51,13 @@ export class InMemoryStore implements IStore {
       return false;
     }
 
-    const updatedJob: IJob = { ...existing, ...updates };
+    const updatedJob: IJob = structuredClone({ ...existing, ...updates });
     this.jobs.set(id, updatedJob);
     return true;
   }
 
   async getJobs(): Promise<IJob[]> {
-    return Array.from(this.jobs.values()).map((job) => ({ ...job }));
+    return Array.from(this.jobs.values()).map((job) => structuredClone(job));
   }
 
   async addTemplate(
