@@ -34,18 +34,18 @@ export class Logger {
                   }
                   return value;
                 },
-                dev ? 2 : 0
+                dev ? 2 : 0,
               )
             : "";
           return `${timestamp} ${level}: ${message} ${metaString}`;
-        })
+        }),
       ),
       transports,
     });
   }
 
   info(message: string, meta: any = {}) {
-    this._logger.info(message);
+    this._logger.info(message, this._addCallSiteMeta(meta));
   }
 
   warn(message: string, meta?: any) {
