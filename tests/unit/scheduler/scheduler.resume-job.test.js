@@ -1,4 +1,4 @@
-import { resumeJob } from "../../src/scheduler/resume-job.js";
+import { resumeJob } from "../../../src/scheduler/resume-job.js";
 import { jest } from "@jest/globals";
 
 describe("resumeJob function", () => {

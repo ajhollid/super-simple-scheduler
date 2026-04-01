@@ -1,4 +1,4 @@
-import { removeJob } from "../../src/scheduler/remove-job.js";
+import { removeJob } from "../../../src/scheduler/remove-job.js";
 import { jest } from "@jest/globals";
 
 describe("removeJob function", () => {
@@ -38,6 +38,7 @@ describe("removeJob function", () => {
     const result = await removeJob.call(context, "job1");
 
     expect(result).toBe(true);
+    expect(mockStore.removeJob).toHaveBeenCalledWith("job1");
   });
 
   it("should return false if removing the job fails", async () => {
@@ -47,5 +48,6 @@ describe("removeJob function", () => {
     const result = await removeJob.call(context, "job1");
 
     expect(result).toBe(false);
+    expect(mockStore.removeJob).toHaveBeenCalledWith("job1");
   });
 });

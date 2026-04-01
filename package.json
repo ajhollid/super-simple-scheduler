@@ -1,6 +1,6 @@
 {
   "name": "super-simple-scheduler",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "A simple scheduler for Node.js",
   "main": "dist/scheduler/index.js",
   "types": "dist/scheduler/index.d.ts",
@@ -14,9 +14,11 @@
     "dev": "nodemon --watch src --ext ts --exec tsx index.ts",
     "test-coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test-in-memory-store": "node --experimental-vm-modules node_modules/.bin/jest tests/store/in-memory.test.js --coverage",
-    "test-process": "node --experimental-vm-modules node_modules/.bin/jest tests/scheduler/scheduler-process-jobs.test.js --coverage",
-    "test-scheduler": "node --experimental-vm-modules node_modules/.bin/jest tests/scheduler/scheduler.test.js --coverage"
+    "test-unit": "node --experimental-vm-modules node_modules/.bin/jest tests/unit/ --coverage",
+    "test-integration": "node --experimental-vm-modules node_modules/.bin/jest tests/integration/ --coverage",
+    "test-in-memory-store": "node --experimental-vm-modules node_modules/.bin/jest tests/unit/store/in-memory.test.js --coverage",
+    "test-process": "node --experimental-vm-modules node_modules/.bin/jest tests/unit/scheduler/scheduler-process-jobs.test.js --coverage",
+    "test-scheduler": "node --experimental-vm-modules node_modules/.bin/jest tests/unit/scheduler/scheduler.test.js --coverage"
   },
   "keywords": [
     "scheduler",

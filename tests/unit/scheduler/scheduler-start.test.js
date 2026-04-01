@@ -1,4 +1,4 @@
-import { start } from "../../src/scheduler/start.js";
+import { start } from "../../../src/scheduler/start.js";
 import { jest } from "@jest/globals";
 
 describe("start function", () => {

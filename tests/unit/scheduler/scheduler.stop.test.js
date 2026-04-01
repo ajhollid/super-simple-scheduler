@@ -1,4 +1,4 @@
-import { stop } from "../../src/scheduler/stop.js";
+import { stop } from "../../../src/scheduler/stop.js";
 import { jest } from "@jest/globals";
 
 describe("stop function", () => {

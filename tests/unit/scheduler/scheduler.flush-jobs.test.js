@@ -1,4 +1,4 @@
-import { flushJobs } from "../../src/scheduler/flush-jobs.js";
+import { flushJobs } from "../../../src/scheduler/flush-jobs.js";
 import { jest } from "@jest/globals";
 
 describe("flushJobs function", () => {
