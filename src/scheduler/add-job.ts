@@ -17,7 +17,7 @@ export async function addJob(
     data?: any;
     active?: boolean;
     startAt?: number;
-  }
+  },
 ) {
   let jobId = id;
   if (!jobId) jobId = uuidv4();
@@ -33,6 +33,10 @@ export async function addJob(
       lastRunAt: null,
       lockedAt: null,
       active: active,
+      failCount: 0,
+      runCount: 0,
+      lastFailedAt: null,
+      lastFailReason: null,
     });
     return true;
   }
