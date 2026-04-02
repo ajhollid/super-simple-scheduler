@@ -12,6 +12,8 @@ let mockRemoveJob;
 let mockUpdateJob;
 let mockFlushJobs;
 let mockAddTemplate;
+let mockGetTemplates;
+let mockRemoveTemplate;
 let Scheduler;
 
 jest.unstable_mockModule("../../../src/scheduler/start.js", () => {
@@ -72,6 +74,16 @@ jest.unstable_mockModule("../../../src/scheduler/flush-jobs.js", () => {
 jest.unstable_mockModule("../../../src/scheduler/add-template.js", () => {
   mockAddTemplate = jest.fn();
   return { addTemplate: mockAddTemplate };
+});
+
+jest.unstable_mockModule("../../../src/scheduler/get-templates.js", () => {
+  mockGetTemplates = jest.fn();
+  return { getTemplates: mockGetTemplates };
+});
+
+jest.unstable_mockModule("../../../src/scheduler/remove-template.js", () => {
+  mockRemoveTemplate = jest.fn();
+  return { removeTemplate: mockRemoveTemplate };
 });
 
 beforeAll(async () => {
@@ -308,6 +320,47 @@ describe("Scheduler", () => {
       const result = await scheduler.addTemplate("otherTemplate", templateFn);
 
       expect(mockAddTemplate).toHaveBeenCalledWith("otherTemplate", templateFn);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("getTemplates", () => {
+    it("calls getTemplatesFn and returns templates", async () => {
+      const fakeTemplates = [jest.fn(), jest.fn()];
+      mockGetTemplates.mockResolvedValue(fakeTemplates);
+
+      const result = await scheduler.getTemplates();
+
+      expect(mockGetTemplates).toHaveBeenCalled();
+      expect(result).toEqual(fakeTemplates);
+    });
+
+    it("returns empty array when no templates", async () => {
+      mockGetTemplates.mockResolvedValue([]);
+
+      const result = await scheduler.getTemplates();
+
+      expect(mockGetTemplates).toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("removeTemplate", () => {
+    it("calls removeTemplateFn and returns true when removal succeeds", async () => {
+      mockRemoveTemplate.mockResolvedValue(true);
+
+      const result = await scheduler.removeTemplate("myTemplate");
+
+      expect(mockRemoveTemplate).toHaveBeenCalledWith("myTemplate");
+      expect(result).toBe(true);
+    });
+
+    it("returns false when removeTemplateFn returns false", async () => {
+      mockRemoveTemplate.mockResolvedValue(false);
+
+      const result = await scheduler.removeTemplate("nonexistent");
+
+      expect(mockRemoveTemplate).toHaveBeenCalledWith("nonexistent");
       expect(result).toBe(false);
     });
   });

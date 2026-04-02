@@ -1,5 +1,5 @@
 import { IScheduler, type SchedulerOptions } from "./types.js";
-import { IStore } from "../store/types..js";
+import { IStore } from "../store/types.js";
 import { IJob } from "../job/types.js";
 import { Logger } from "../utils/logger.js";
 import { start as startFn } from "./start.js";
@@ -11,6 +11,8 @@ import { getJobs as getJobsFn } from "./get-jobs.js";
 import { removeJob as removeJobFn } from "./remove-job.js";
 import { updateJob as updateJobFn } from "./update-job.js";
 import { addTemplate as addTemplateFn } from "./add-template.js";
+import { getTemplates as getTemplatesFn } from "./get-templates.js";
+import { removeTemplate as removeTemplateFn } from "./remove-template.js";
 import { flushJobs as flushJobsFn } from "./flush-jobs.js";
 import { pauseJob as pauseJobFn } from "./pause-job.js";
 import { resumeJob as resumeJobFn } from "./resume-job.js";
@@ -54,7 +56,7 @@ export default class Scheduler implements IScheduler {
     template: string;
     startAt?: number;
     repeat?: number;
-    data?: any;
+    data?: unknown;
     active?: boolean;
   }): Promise<boolean> {
     return addJobFn.call(this, { id, template, startAt, repeat, data, active });
@@ -93,8 +95,16 @@ export default class Scheduler implements IScheduler {
 
   async addTemplate(
     name: string,
-    template: (data?: any) => void | Promise<void>,
+    template: (data?: unknown) => void | Promise<void>,
   ): Promise<boolean> {
     return addTemplateFn.call(this, name, template);
+  }
+
+  async getTemplates(): Promise<Array<(data?: unknown) => void | Promise<void>>> {
+    return getTemplatesFn.call(this);
+  }
+
+  async removeTemplate(name: string): Promise<boolean> {
+    return removeTemplateFn.call(this, name);
   }
 }
