@@ -29,22 +29,5 @@ jobs:
       - name: Run tests
         run: npm run test
 
-      - name: Check if version is updated
-        id: version-check
-        run: |
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "Current version: $CURRENT_VERSION"
-          PUBLISHED_VERSION=$(npm view super-simple-scheduler version || echo "none")
-          echo "Published version: $PUBLISHED_VERSION"
-
-          if [ "$CURRENT_VERSION" = "$PUBLISHED_VERSION" ]; then
-            echo "Version not updated, skipping publish"
-            echo "publish=false" >> $GITHUB_OUTPUT
-          else
-            echo "Version updated, publishing"
-            echo "publish=true" >> $GITHUB_OUTPUT
-          fi
-
       - name: Publish to NPM
-        if: steps.version-check.outputs.publish == 'true'
         run: npm publish --provenance
