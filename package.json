@@ -2,6 +2,10 @@
   "name": "super-simple-scheduler",
   "version": "1.5.0",
   "description": "A simple scheduler for Node.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ajhollid/super-simple-scheduler.git"
+  },
   "main": "dist/scheduler/index.js",
   "types": "dist/scheduler/index.d.ts",
   "files": [
