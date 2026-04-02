@@ -70,7 +70,7 @@ const doStuff = async () => {
       console.log(
         `[${new Date().toISOString()}] GET ${url} → ${
           res.status
-        } (${duration} ms)`
+        } (${duration} ms)`,
       );
 
       return { url, status: res.status, duration };
@@ -78,7 +78,7 @@ const doStuff = async () => {
       const duration = Date.now() - start;
       console.error(
         `[${new Date().toISOString()}] Error fetching ${url} after ${duration} ms:`,
-        err.name === "AbortError" ? "Timeout" : err.message
+        err.name === "AbortError" ? "Timeout" : err.message,
       );
       throw err;
     }

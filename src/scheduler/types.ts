@@ -1,5 +1,5 @@
-import { IJob } from "../job/job.js";
-import { IStore } from "../store/store.js";
+import { IJob } from "../job/types.js";
+import { IStore } from "../store/types.js";
 import { Logger } from "../utils/logger.js";
 
 export interface IScheduler {
@@ -23,7 +23,7 @@ export interface IScheduler {
     template: string;
     startAt?: number;
     repeat?: number;
-    data?: any;
+    data?: unknown;
     active?: boolean;
   }) => Promise<boolean>;
 
@@ -37,12 +37,22 @@ export interface IScheduler {
 
   removeJob(id: string | number): Promise<boolean>;
 
-  updateJob(id: string, updates: Partial<IJob>): Promise<boolean>;
+  updateJob(id: string | number, updates: Partial<IJob>): Promise<boolean>;
 
   flushJobs(): Promise<boolean>;
 
   addTemplate(
     name: string,
-    template: (data?: any) => void | Promise<void>
+    template: (data?: unknown) => void | Promise<void>,
   ): Promise<boolean>;
+
+  getTemplates(): Promise<Array<(data?: unknown) => void | Promise<void>>>;
+
+  removeTemplate(name: string): Promise<boolean>;
 }
+
+export type SchedulerOptions = {
+  logLevel?: "none" | "info" | "debug" | "warn" | "error";
+  dev?: boolean;
+  processEvery?: number;
+};

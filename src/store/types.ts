@@ -1,4 +1,4 @@
-import { IJob } from "../job/job.js";
+import { IJob } from "../job/types.js";
 
 export interface IStore {
   init(maxWaitTime?: number): Promise<boolean>;
@@ -12,11 +12,16 @@ export interface IStore {
   flushJobs(): Promise<boolean>;
   addTemplate(
     name: string,
-    template: (data?: any) => void | Promise<void>,
+    template: (data?: unknown) => void | Promise<void>,
   ): Promise<boolean>;
 
   getTemplate(
     name: string,
-  ): Promise<((data?: any) => void | Promise<void>) | null>;
+  ): Promise<((data?: unknown) => void | Promise<void>) | null>;
+
+  getTemplates(): Promise<Array<(data?: unknown) => void | Promise<void>>>;
+
+  removeTemplate(name: string): Promise<boolean>;
+
   close(): Promise<boolean>;
 }

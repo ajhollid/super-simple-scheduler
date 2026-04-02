@@ -10,18 +10,34 @@ describe("addJob function", () => {
     mockLogger = {
       warn: jest.fn(),
       info: jest.fn(),
+      error: jest.fn(),
     };
 
     mockStore = {
       getJob: jest.fn(),
       addJob: jest.fn(),
       updateJob: jest.fn(),
+      getTemplate: jest.fn().mockResolvedValue(() => {}),
     };
 
     context = {
       logger: mockLogger,
       store: mockStore,
     };
+  });
+
+  it("returns false if template does not exist", async () => {
+    mockStore.getTemplate.mockResolvedValue(null);
+
+    const result = await addJob.call(context, {
+      id: "job1",
+      template: "nonexistent",
+    });
+
+    expect(result).toBe(false);
+    expect(mockLogger.error).toHaveBeenCalled();
+    expect(mockStore.addJob).not.toHaveBeenCalled();
+    expect(mockStore.updateJob).not.toHaveBeenCalled();
   });
 
   it("updates job and returns true if job with id already exists", async () => {

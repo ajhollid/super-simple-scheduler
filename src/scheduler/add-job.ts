@@ -1,4 +1,4 @@
-import { IScheduler } from "./scheduler.js";
+import { IScheduler } from "./types.js";
 import { v4 as uuidv4 } from "uuid";
 
 export async function addJob(
@@ -14,13 +14,20 @@ export async function addJob(
     id?: string | number;
     template: string;
     repeat?: number;
-    data?: any;
+    data?: unknown;
     active?: boolean;
     startAt?: number;
   },
 ) {
+  // Check if template exists
+  const templateFn = await this.store.getTemplate(template);
+  if (!templateFn) {
+    this.logger.error(`Template "${template}" does not exist, cannot add job`);
+    return false;
+  }
+
   let jobId = id;
-  if (!jobId) jobId = uuidv4();
+  if (typeof jobId === "undefined") jobId = uuidv4();
 
   const existingJob = await this.store.getJob(jobId);
 

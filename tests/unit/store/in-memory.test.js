@@ -163,6 +163,41 @@ describe("InMemoryStore", () => {
     });
   });
 
+  describe("getTemplates", () => {
+    it("should return all templates", async () => {
+      const fn1 = () => {};
+      const fn2 = () => {};
+      await store.addTemplate("t1", fn1);
+      await store.addTemplate("t2", fn2);
+
+      const result = await store.getTemplates();
+      expect(result).toHaveLength(2);
+      expect(result).toContain(fn1);
+      expect(result).toContain(fn2);
+    });
+
+    it("should return empty array when no templates exist", async () => {
+      const result = await store.getTemplates();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("removeTemplate", () => {
+    it("should return true if the template is removed", async () => {
+      await store.addTemplate("test", () => {});
+      const result = await store.removeTemplate("test");
+      expect(result).toBe(true);
+
+      const template = await store.getTemplate("test");
+      expect(template).toBeNull();
+    });
+
+    it("should return false if the template does not exist", async () => {
+      const result = await store.removeTemplate("nonexistent");
+      expect(result).toBe(false);
+    });
+  });
+
   describe("flushJobs", () => {
     it("should return true if the jobs are flushed", async () => {
       await store.addJob({

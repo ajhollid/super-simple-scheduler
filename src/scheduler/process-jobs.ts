@@ -1,5 +1,5 @@
-import { IScheduler } from "./scheduler.js";
-import { IJob } from "../job/job.js";
+import { IScheduler } from "./types.js";
+import { IJob } from "../job/types.js";
 
 export async function processJobs(this: IScheduler) {
   const jobs = await this.store.getJobs();
@@ -41,24 +41,19 @@ export function shouldJobRun(this: IScheduler, job: IJob): boolean {
   const now = Date.now();
 
   // Skip inactive jobs
-  if (!job.active) {
-    return false;
-  }
+  if (!job.active) return false;
+
+  // Skip locked jobs
+  if (job.lockedAt) return false;
 
   // Skip jobs that haven't reached their start time yet
-  if (job.startAt && job.startAt > now) {
-    return false;
-  }
+  if (job.startAt && job.startAt > now) return false;
 
   // If job has never run before, it should run immediately
-  if (!job.lastRunAt) {
-    return true;
-  }
+  if (!job.lastRunAt) return true;
 
   // If job has no repeat interval, it's a one-time job that has already run
-  if (!job.repeat) {
-    return false;
-  }
+  if (!job.repeat) return false;
 
   // For repeating jobs, check if enough time has passed since last run
   const timeSinceLastRun = now - job.lastRunAt;
@@ -68,7 +63,7 @@ export function shouldJobRun(this: IScheduler, job: IJob): boolean {
 export async function processNextJob(
   this: IScheduler,
   job: IJob,
-  jobFn: (data?: any) => void | Promise<void>,
+  jobFn: (data?: unknown) => void | Promise<void>,
 ): Promise<void> {
   // Acquire lock
   const locked = await this.store.lockJob(job.id);
@@ -118,7 +113,6 @@ export async function processNextJob(
 
   // Release lock
   await this.store.unlockJob(job.id);
-  job.lockedAt = null;
 
   if (!success) {
     this.logger.error(
@@ -136,7 +130,7 @@ export async function processNextJob(
     lockedAt: null,
   });
 
-  if (!job.repeat) {
+  if (!job.repeat && success) {
     await this.store.removeJob(job.id);
   }
 }

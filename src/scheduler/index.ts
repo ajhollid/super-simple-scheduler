@@ -1,7 +1,6 @@
-import { IScheduler } from "./scheduler.js";
-import { SchedulerOptions } from "./scheduler-options.js";
-import { IStore } from "../store/store.js";
-import { IJob } from "../job/job.js";
+import { IScheduler, type SchedulerOptions } from "./types.js";
+import { IStore } from "../store/types.js";
+import { IJob } from "../job/types.js";
 import { Logger } from "../utils/logger.js";
 import { start as startFn } from "./start.js";
 import { stop as stopFn } from "./stop.js";
@@ -12,6 +11,8 @@ import { getJobs as getJobsFn } from "./get-jobs.js";
 import { removeJob as removeJobFn } from "./remove-job.js";
 import { updateJob as updateJobFn } from "./update-job.js";
 import { addTemplate as addTemplateFn } from "./add-template.js";
+import { getTemplates as getTemplatesFn } from "./get-templates.js";
+import { removeTemplate as removeTemplateFn } from "./remove-template.js";
 import { flushJobs as flushJobsFn } from "./flush-jobs.js";
 import { pauseJob as pauseJobFn } from "./pause-job.js";
 import { resumeJob as resumeJobFn } from "./resume-job.js";
@@ -32,19 +33,18 @@ export default class Scheduler implements IScheduler {
     this.store = new InMemoryStore();
   }
 
-  get start(): () => Promise<boolean> {
-    return startFn;
+  async start(): Promise<boolean> {
+    return startFn.call(this);
+  }
+  async stop(): Promise<boolean> {
+    return stopFn.call(this);
   }
 
-  get stop(): () => Promise<boolean> {
-    return stopFn;
+  async processJobs(): Promise<void> {
+    return processJobsFn.call(this);
   }
 
-  get processJobs(): () => Promise<void> {
-    return processJobsFn;
-  }
-
-  get addJob(): ({
+  async addJob({
     id,
     template,
     startAt,
@@ -56,47 +56,55 @@ export default class Scheduler implements IScheduler {
     template: string;
     startAt?: number;
     repeat?: number;
-    data?: any;
+    data?: unknown;
     active?: boolean;
-  }) => Promise<boolean> {
-    return addJobFn;
+  }): Promise<boolean> {
+    return addJobFn.call(this, { id, template, startAt, repeat, data, active });
   }
 
-  get pauseJob(): (id: string | number) => Promise<boolean> {
-    return pauseJobFn;
+  async pauseJob(id: string | number): Promise<boolean> {
+    return pauseJobFn.call(this, id);
   }
 
-  get resumeJob(): (id: string | number) => Promise<boolean> {
-    return resumeJobFn;
+  async resumeJob(id: string | number): Promise<boolean> {
+    return resumeJobFn.call(this, id);
   }
 
-  get getJob(): (id: string | number) => Promise<IJob | null> {
-    return getJobFn;
+  async getJob(id: string | number): Promise<IJob | null> {
+    return getJobFn.call(this, id);
   }
 
-  get getJobs(): () => Promise<IJob[]> {
-    return getJobsFn;
+  async getJobs(): Promise<IJob[]> {
+    return getJobsFn.call(this);
   }
 
-  get removeJob(): (id: string | number) => Promise<boolean> {
-    return removeJobFn;
+  async removeJob(id: string | number): Promise<boolean> {
+    return removeJobFn.call(this, id);
   }
 
-  get updateJob(): (
+  async updateJob(
     id: string | number,
-    updates: Partial<IJob>
-  ) => Promise<boolean> {
-    return updateJobFn;
+    updates: Partial<IJob>,
+  ): Promise<boolean> {
+    return updateJobFn.call(this, id, updates);
   }
 
-  get flushJobs(): () => Promise<boolean> {
-    return flushJobsFn;
+  async flushJobs(): Promise<boolean> {
+    return flushJobsFn.call(this);
   }
 
-  get addTemplate(): (
+  async addTemplate(
     name: string,
-    template: (data?: any) => void | Promise<void>
-  ) => Promise<boolean> {
-    return addTemplateFn;
+    template: (data?: unknown) => void | Promise<void>,
+  ): Promise<boolean> {
+    return addTemplateFn.call(this, name, template);
+  }
+
+  async getTemplates(): Promise<Array<(data?: unknown) => void | Promise<void>>> {
+    return getTemplatesFn.call(this);
+  }
+
+  async removeTemplate(name: string): Promise<boolean> {
+    return removeTemplateFn.call(this, name);
   }
 }
