@@ -26,6 +26,7 @@ describe("processJobs function", () => {
     context = {
       logger: mockLogger,
       store: mockStore,
+      emit: jest.fn(),
     };
   });
 

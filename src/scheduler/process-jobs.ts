@@ -65,6 +65,8 @@ export async function processNextJob(
   job: IJob,
   jobFn: (data?: unknown) => void | Promise<void>,
 ): Promise<void> {
+  // Emit start
+  this.emit("job:start", job);
   // Acquire lock
   const locked = await this.store.lockJob(job.id);
   if (!locked) {
@@ -83,11 +85,15 @@ export async function processNextJob(
 
   while (attempts < maxRetries) {
     attempts++;
+    // Emit attempt
+    this.emit("job:attempt", job, attempts);
     try {
       lastRunAt = Date.now();
       runCount++;
       await jobFn(job.data);
       success = true;
+      // Emit success
+      this.emit("job:complete", job);
       break;
     } catch (error) {
       const existingJob = await this.store.getJob(job.id);
@@ -101,6 +107,8 @@ export async function processNextJob(
       failCount++;
       lastFailedAt = Date.now();
       lastFailReason = error instanceof Error ? error.message : "Unknown error";
+      // Emit fail
+      this.emit("job:fail", job, error);
       this.logger.warn(`Job failed (attempt ${attempts}/${maxRetries})`, {
         id: job.id,
         failReason: lastFailReason,

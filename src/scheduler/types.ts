@@ -1,8 +1,9 @@
+import { EventEmitter } from "events";
 import { IJob } from "../job/types.js";
 import { IStore } from "../store/types.js";
 import { Logger } from "../utils/logger.js";
 
-export interface IScheduler {
+export interface IScheduler extends EventEmitter {
   processEvery: number;
   intervalId: NodeJS.Timeout | null;
   store: IStore;

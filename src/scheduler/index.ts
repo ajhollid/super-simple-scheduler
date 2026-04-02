@@ -17,16 +17,17 @@ import { flushJobs as flushJobsFn } from "./flush-jobs.js";
 import { pauseJob as pauseJobFn } from "./pause-job.js";
 import { resumeJob as resumeJobFn } from "./resume-job.js";
 import { InMemoryStore } from "../store/inMemory/inMemoryStore.js";
+import { EventEmitter } from "events";
 
-export default class Scheduler implements IScheduler {
+export default class Scheduler extends EventEmitter implements IScheduler {
   public processEvery: number;
   public intervalId: NodeJS.Timeout | null;
   public store: IStore;
   public logger: Logger;
 
   constructor(options: SchedulerOptions) {
+    super();
     const { logLevel = "info", dev = false, processEvery = 1000 } = options;
-
     this.processEvery = processEvery;
     this.intervalId = null;
     this.logger = new Logger(logLevel, dev);
@@ -100,7 +101,9 @@ export default class Scheduler implements IScheduler {
     return addTemplateFn.call(this, name, template);
   }
 
-  async getTemplates(): Promise<Array<(data?: unknown) => void | Promise<void>>> {
+  async getTemplates(): Promise<
+    Array<(data?: unknown) => void | Promise<void>>
+  > {
     return getTemplatesFn.call(this);
   }
 

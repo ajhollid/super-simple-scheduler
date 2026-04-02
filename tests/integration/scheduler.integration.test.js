@@ -411,6 +411,146 @@ describe("Scheduler Integration", () => {
     });
   });
 
+  describe("event emitter", () => {
+    it("should emit job:start before execution", async () => {
+      const startHandler = jest.fn();
+      scheduler.on("job:start", startHandler);
+
+      await scheduler.addTemplate("test", () => {});
+      await scheduler.addJob({ id: "job-1", template: "test" });
+      await scheduler.processJobs();
+
+      expect(startHandler).toHaveBeenCalledTimes(1);
+      expect(startHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "job-1", template: "test" }),
+      );
+    });
+
+    it("should emit job:attempt with attempt number", async () => {
+      const attemptHandler = jest.fn();
+      scheduler.on("job:attempt", attemptHandler);
+
+      await scheduler.addTemplate("test", () => {});
+      await scheduler.addJob({ id: "job-1", template: "test" });
+      await scheduler.processJobs();
+
+      expect(attemptHandler).toHaveBeenCalledTimes(1);
+      expect(attemptHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "job-1" }),
+        1,
+      );
+    });
+
+    it("should emit job:complete on successful execution", async () => {
+      const completeHandler = jest.fn();
+      scheduler.on("job:complete", completeHandler);
+
+      await scheduler.addTemplate("test", () => {});
+      await scheduler.addJob({ id: "job-1", template: "test" });
+      await scheduler.processJobs();
+
+      expect(completeHandler).toHaveBeenCalledTimes(1);
+      expect(completeHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "job-1" }),
+      );
+    });
+
+    it("should emit job:fail on each failed attempt", async () => {
+      const failHandler = jest.fn();
+      scheduler.on("job:fail", failHandler);
+
+      await scheduler.addTemplate("fail", () => {
+        throw new Error("broken");
+      });
+      await scheduler.addJob({
+        id: "job-1",
+        template: "fail",
+      });
+      await scheduler.processJobs();
+
+      // Default maxRetries is 3, so job:fail fires 3 times
+      expect(failHandler).toHaveBeenCalledTimes(3);
+      expect(failHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "job-1" }),
+        expect.any(Error),
+      );
+    });
+
+    it("should emit job:attempt for each retry", async () => {
+      const attemptHandler = jest.fn();
+      scheduler.on("job:attempt", attemptHandler);
+
+      let calls = 0;
+      await scheduler.addTemplate("flaky", () => {
+        calls++;
+        if (calls <= 2) throw new Error("fail");
+      });
+      await scheduler.addJob({
+        id: "job-1",
+        template: "flaky",
+        maxRetries: 3,
+      });
+      await scheduler.processJobs();
+
+      expect(attemptHandler).toHaveBeenCalledTimes(3);
+      expect(attemptHandler).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ id: "job-1" }),
+        1,
+      );
+      expect(attemptHandler).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ id: "job-1" }),
+        2,
+      );
+      expect(attemptHandler).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({ id: "job-1" }),
+        3,
+      );
+    });
+
+    it("should emit job:fail for each failed attempt and job:complete on eventual success", async () => {
+      const failHandler = jest.fn();
+      const completeHandler = jest.fn();
+      scheduler.on("job:fail", failHandler);
+      scheduler.on("job:complete", completeHandler);
+
+      let calls = 0;
+      await scheduler.addTemplate("flaky", () => {
+        calls++;
+        if (calls === 1) throw new Error("transient");
+      });
+      await scheduler.addJob({
+        id: "job-1",
+        template: "flaky",
+        maxRetries: 3,
+      });
+      await scheduler.processJobs();
+
+      expect(failHandler).toHaveBeenCalledTimes(1);
+      expect(completeHandler).toHaveBeenCalledTimes(1);
+    });
+
+    it("should not emit any events for locked jobs", async () => {
+      const startHandler = jest.fn();
+      const completeHandler = jest.fn();
+      scheduler.on("job:start", startHandler);
+      scheduler.on("job:complete", completeHandler);
+
+      await scheduler.addTemplate("test", () => {});
+      await scheduler.addJob({ id: "job-1", template: "test" });
+
+      // Manually lock the job — shouldJobRun skips locked jobs
+      await scheduler.store.lockJob("job-1");
+
+      await scheduler.processJobs();
+
+      expect(startHandler).not.toHaveBeenCalled();
+      expect(completeHandler).not.toHaveBeenCalled();
+    });
+  });
+
   describe("data isolation", () => {
     it("should not leak caller data references into the store", async () => {
       await scheduler.addTemplate("test", () => {});
