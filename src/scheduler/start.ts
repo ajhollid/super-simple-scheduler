@@ -1,4 +1,4 @@
-import { IScheduler } from "./scheduler.js";
+import { IScheduler } from "./types.js";
 
 export async function start(this: IScheduler) {
   this.logger.info("Scheduler started");
