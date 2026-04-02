@@ -4,7 +4,7 @@
   "description": "A simple scheduler for Node.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ajhollid/super-simple-scheduler"
+    "url": "git+https://github.com/ajhollid/super-simple-scheduler.git"
   },
   "main": "dist/scheduler/index.js",
   "types": "dist/scheduler/index.d.ts",
