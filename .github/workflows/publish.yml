@@ -5,29 +5,28 @@ on:
   push:
     tags:
       - "v*"
+
 permissions:
   contents: read
   id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org/
+          # REMOVE registry-url entirely
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run tests
         run: npm run test
