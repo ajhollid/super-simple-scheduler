@@ -30,4 +30,4 @@ jobs:
         run: npm run test
 
       - name: Publish to NPM
-        run: npm publish --provenance
+        run: npm publish --provenance --access public
