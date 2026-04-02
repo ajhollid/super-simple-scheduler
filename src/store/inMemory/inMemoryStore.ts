@@ -1,5 +1,5 @@
-import { IStore } from "../store.js";
-import { IJob } from "../../job/job.js";
+import { IStore } from "../types..js";
+import { IJob } from "../../job/types.js";
 
 export class InMemoryStore implements IStore {
   private jobs = new Map<string | number, IJob>();

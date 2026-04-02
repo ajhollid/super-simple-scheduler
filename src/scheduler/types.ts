@@ -1,5 +1,5 @@
-import { IJob } from "../job/job.js";
-import { IStore } from "../store/store.js";
+import { IJob } from "../job/types.js";
+import { IStore } from "../store/types..js";
 import { Logger } from "../utils/logger.js";
 
 export interface IScheduler {
@@ -43,6 +43,12 @@ export interface IScheduler {
 
   addTemplate(
     name: string,
-    template: (data?: any) => void | Promise<void>
+    template: (data?: any) => void | Promise<void>,
   ): Promise<boolean>;
 }
+
+export type SchedulerOptions = {
+  logLevel?: "none" | "info" | "debug" | "warn" | "error";
+  dev?: boolean;
+  processEvery?: number;
+};

@@ -1,4 +1,4 @@
-import { IJob } from "../job/job.js";
+import { IJob } from "../job/types.js";
 
 export interface IStore {
   init(maxWaitTime?: number): Promise<boolean>;

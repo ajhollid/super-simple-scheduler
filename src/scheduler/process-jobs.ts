@@ -1,5 +1,5 @@
-import { IScheduler } from "./scheduler.js";
-import { IJob } from "../job/job.js";
+import { IScheduler } from "./types.js";
+import { IJob } from "../job/types.js";
 
 export async function processJobs(this: IScheduler) {
   const jobs = await this.store.getJobs();
