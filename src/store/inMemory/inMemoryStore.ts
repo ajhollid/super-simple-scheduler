@@ -1,9 +1,9 @@
-import { IStore } from "../types..js";
+import { IStore } from "../types.js";
 import { IJob } from "../../job/types.js";
 
 export class InMemoryStore implements IStore {
   private jobs = new Map<string | number, IJob>();
-  private templates = new Map<string, (data?: any) => void | Promise<void>>();
+  private templates = new Map<string, (data?: unknown) => void | Promise<void>>();
 
   async init(): Promise<boolean> {
     return true;
@@ -62,7 +62,7 @@ export class InMemoryStore implements IStore {
 
   async addTemplate(
     name: string,
-    template: (data?: any) => void | Promise<void>,
+    template: (data?: unknown) => void | Promise<void>,
   ): Promise<boolean> {
     const result = this.templates.set(name, template);
     return result.has(name);
@@ -70,8 +70,18 @@ export class InMemoryStore implements IStore {
 
   async getTemplate(
     name: string,
-  ): Promise<((data?: any) => void | Promise<void>) | null> {
+  ): Promise<((data?: unknown) => void | Promise<void>) | null> {
     return this.templates.get(name) ?? null;
+  }
+
+  async getTemplates(): Promise<
+    Array<(data?: unknown) => void | Promise<void>>
+  > {
+    return Array.from(this.templates.values());
+  }
+
+  async removeTemplate(name: string): Promise<boolean> {
+    return this.templates.delete(name);
   }
 
   async flushJobs(): Promise<boolean> {

@@ -198,14 +198,16 @@ describe("Scheduler Integration", () => {
       expect(fn).not.toHaveBeenCalled();
     });
 
-    it("should skip jobs with no registered template", async () => {
-      await scheduler.addJob({ id: "job-1", template: "nonexistent" });
+    it("should reject adding a job with no registered template", async () => {
+      const result = await scheduler.addJob({
+        id: "job-1",
+        template: "nonexistent",
+      });
 
-      await scheduler.processJobs();
+      expect(result).toBe(false);
 
       const job = await scheduler.getJob("job-1");
-      expect(job).not.toBeNull();
-      expect(job.lastRunAt).toBeNull();
+      expect(job).toBeNull();
     });
 
     it("should execute multiple jobs concurrently", async () => {
@@ -379,6 +381,33 @@ describe("Scheduler Integration", () => {
       const result = await scheduler.stop();
       expect(result).toBe(true);
       expect(scheduler.intervalId).toBeNull();
+    });
+  });
+
+  describe("template management", () => {
+    it("should add and retrieve templates", async () => {
+      const fn1 = () => {};
+      const fn2 = () => {};
+      await scheduler.addTemplate("t1", fn1);
+      await scheduler.addTemplate("t2", fn2);
+
+      const templates = await scheduler.getTemplates();
+      expect(templates).toHaveLength(2);
+    });
+
+    it("should remove a template", async () => {
+      await scheduler.addTemplate("removable", () => {});
+
+      const result = await scheduler.removeTemplate("removable");
+      expect(result).toBe(true);
+
+      const templates = await scheduler.getTemplates();
+      expect(templates).toHaveLength(0);
+    });
+
+    it("should return false when removing a nonexistent template", async () => {
+      const result = await scheduler.removeTemplate("nonexistent");
+      expect(result).toBe(false);
     });
   });
 
