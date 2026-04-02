@@ -12,6 +12,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Upgrade npm CLI
+        run: npm install -g npm@latest
       - name: Checkout code
         uses: actions/checkout@v6
         with:
