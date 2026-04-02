@@ -48,4 +48,4 @@ jobs:
 
       - name: Publish to NPM
         if: steps.version-check.outputs.publish == 'true'
-        run: npm publish --provenance --access public
+        run: npm publish --provenance --access public --registry=https://registry.npmjs.org/
