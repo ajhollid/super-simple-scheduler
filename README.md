@@ -16,12 +16,16 @@ A lightweight and easy-to-use job scheduler for Node.js with support for repeate
 ## Features
 
 - Schedule jobs with optional repeat intervals
+- Fire-and-forget dispatch -- long-running jobs never block the scheduling of other jobs
+- Configurable concurrency limit
 - Automatic retry on failure with configurable max retries
 - Simple API to add job templates and jobs
 - Written in TypeScript with type definitions
 - Job pausing, resuming, and removal
+- Event emitter for job lifecycle monitoring
 - Comprehensive logging with Winston
 - Fast in-memory storage backend
+- Graceful shutdown with in-flight job draining
 - Async/await API throughout
 - ES Module support
 
@@ -42,6 +46,7 @@ const options: SchedulerOptions = {
   logLevel: "info",
   dev: true,
   processEvery: 1000,
+  concurrency: 10,
 };
 
 const scheduler = new Scheduler(options);
@@ -57,6 +62,7 @@ const scheduler = new Scheduler({
   logLevel: "info",
   dev: false,
   processEvery: 1000, // Process jobs every 1 second
+  concurrency: 10, // Max concurrent jobs (default: 10)
 });
 
 // Add a job template
@@ -93,6 +99,7 @@ new Scheduler(options: SchedulerOptions)
 - `options.logLevel` (optional): Logging level ('none', 'debug', 'info', 'warn', 'error'). Default: 'info'
 - `options.dev` (optional): Development mode flag. Default: false
 - `options.processEvery` (optional): Interval in milliseconds to process jobs. Default: 1000
+- `options.concurrency` (optional): Maximum number of jobs that can run concurrently. Default: 10
 
 **Example:**
 
@@ -101,6 +108,7 @@ const scheduler = new Scheduler({
   logLevel: "debug",
   dev: true,
   processEvery: 5000, // Process every 5 seconds
+  concurrency: 20, // Allow up to 20 concurrent jobs
 });
 ```
 
@@ -123,14 +131,14 @@ if (success) {
 
 ##### `stop(): Promise<boolean>`
 
-Stops the scheduler and clears the processing interval.
+Stops the scheduler. Clears the processing interval, then waits for any in-flight jobs to complete before closing the store.
 
 **Returns:** `Promise<boolean>` - `true` if stopped successfully
 
 **Example:**
 
 ```typescript
-const success = scheduler.stop();
+const success = await scheduler.stop();
 if (success) {
   console.log("Scheduler stopped");
 }
@@ -353,8 +361,8 @@ Jobs have the following structure:
 interface IJob {
   id: string | number; // Unique identifier
   template: string; // Template name
-  data?: any; // Data passed to template function
-  repeat?: number; // Interval in milliseconds (null for one-time)
+  data?: unknown; // Data passed to template function
+  repeat?: number; // Interval in milliseconds (undefined for one-time)
   maxRetries?: number; // Maximum retry attempts (default: 3)
   active: boolean; // Whether job is active
   startAt?: number | null; // Timestamp when job should start running
@@ -367,6 +375,57 @@ interface IJob {
   runCount?: number; // Number of successful runs
 }
 ```
+
+### Events
+
+The scheduler extends `EventEmitter` and emits lifecycle events for each job:
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `job:start` | `(job)` | Emitted before a job begins execution |
+| `job:attempt` | `(job, attemptNumber)` | Emitted before each attempt (including retries) |
+| `job:complete` | `(job)` | Emitted when a job succeeds |
+| `job:fail` | `(job, error)` | Emitted on each failed attempt |
+
+**Example:**
+
+```typescript
+scheduler.on("job:start", (job) => {
+  console.log(`Job ${job.id} starting`);
+});
+
+scheduler.on("job:complete", (job) => {
+  console.log(`Job ${job.id} completed`);
+});
+
+scheduler.on("job:fail", (job, error) => {
+  console.error(`Job ${job.id} failed:`, error.message);
+});
+
+scheduler.on("job:attempt", (job, attempt) => {
+  console.log(`Job ${job.id} attempt ${attempt}`);
+});
+```
+
+## Job Dispatch Model
+
+The scheduler uses a fire-and-forget dispatch model. Each polling cycle, `processJobs` dispatches all ready jobs and returns immediately -- it does not wait for jobs to finish. Jobs execute in the background and are tracked via an internal `running` set.
+
+This means a long-running job will never block the scheduling of other jobs. For example, if a job takes 30 seconds to complete and the scheduler polls every 1 second, all other jobs continue to be evaluated and dispatched on schedule during that time.
+
+### Concurrency
+
+The `concurrency` option (default: 10) controls the maximum number of jobs that can execute simultaneously across all polling cycles. When the limit is reached, the scheduler waits for one job to finish before dispatching the next.
+
+### Graceful Shutdown
+
+When `stop()` is called, the scheduler:
+
+1. Stops polling for new jobs
+2. Waits for all in-flight jobs to complete
+3. Closes the store
+
+This ensures locks are released and job state is fully persisted before shutdown.
 
 ## Storage
 
@@ -403,8 +462,9 @@ The scheduler uses a sophisticated job execution system that determines when job
 A job will run when **all** of the following conditions are met:
 
 1. **Active Status**: Job is active (`active: true`)
-2. **Start Time**: If `startAt` is set, the current time must be >= `startAt`
-3. **Execution History**:
+2. **Not Locked**: Job is not currently being executed (`lockedAt: null`)
+3. **Start Time**: If `startAt` is set, the current time must be >= `startAt`
+4. **Execution History**:
    - If job has never run before (`lastRunAt: null`), it runs immediately
    - If job is one-time (`repeat: null`) and has already run, it doesn't run again
    - If job is repeating, enough time must have passed since the last run
@@ -465,6 +525,16 @@ const scheduler = new Scheduler({
 });
 ```
 
+### Concurrency
+
+Control the maximum number of simultaneously executing jobs:
+
+```typescript
+const scheduler = new Scheduler({
+  concurrency: 5, // Only 5 jobs can run at once (default: 10)
+});
+```
+
 ### Retry Behavior
 
 Jobs automatically retry on failure with a configurable maximum number of attempts:
@@ -484,8 +554,9 @@ The scheduler includes comprehensive error handling:
 
 - Failed jobs are automatically retried up to the configured `maxRetries`
 - All errors are logged with detailed information using Winston
-- Jobs that fail all retry attempts are logged as errors
-- One-time jobs (`repeat: null`) are removed after execution regardless of success/failure
+- Jobs that fail all retry attempts are logged as errors and requeued for the next cycle
+- One-time jobs are removed after successful execution
+- If a job is removed while it is being retried, execution is aborted
 
 ## Logging
 
