@@ -1,9 +1,13 @@
 import { IStore } from "../types.js";
 import { IJob } from "../../job/types.js";
+import { cloneJob } from "../../utils/cloneJob.js";
 
 export class InMemoryStore implements IStore {
   private jobs = new Map<string | number, IJob>();
-  private templates = new Map<string, (data?: unknown) => void | Promise<void>>();
+  private templates = new Map<
+    string,
+    (data?: unknown) => void | Promise<void>
+  >();
 
   async init(): Promise<boolean> {
     return true;
@@ -15,7 +19,7 @@ export class InMemoryStore implements IStore {
       return false;
     }
 
-    this.jobs.set(id, structuredClone({ ...job, lockedAt: Date.now() }));
+    this.jobs.set(id, cloneJob({ ...job, lockedAt: Date.now() }));
     return true;
   }
 
@@ -24,18 +28,18 @@ export class InMemoryStore implements IStore {
     if (!job || !job.lockedAt) {
       return false;
     }
-    this.jobs.set(id, structuredClone({ ...job, lockedAt: null }));
+    this.jobs.set(id, cloneJob({ ...job, lockedAt: null }));
     return true;
   }
 
   async addJob(job: IJob): Promise<boolean> {
-    this.jobs.set(job.id, structuredClone(job));
+    this.jobs.set(job.id, cloneJob(job));
     return true;
   }
 
   async getJob(id: string | number): Promise<IJob | null> {
     const job = this.jobs.get(id);
-    return job ? structuredClone(job) : null;
+    return job ? cloneJob(job) : null;
   }
 
   async removeJob(id: string | number): Promise<boolean> {
@@ -51,13 +55,13 @@ export class InMemoryStore implements IStore {
       return false;
     }
 
-    const updatedJob: IJob = structuredClone({ ...existing, ...updates });
+    const updatedJob: IJob = cloneJob({ ...existing, ...updates });
     this.jobs.set(id, updatedJob);
     return true;
   }
 
   async getJobs(): Promise<IJob[]> {
-    return Array.from(this.jobs.values()).map((job) => structuredClone(job));
+    return Array.from(this.jobs.values()).map((job) => cloneJob(job));
   }
 
   async addTemplate(
