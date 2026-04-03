@@ -60,7 +60,7 @@ export function shouldJobRun(this: IScheduler, job: IJob): boolean {
 export async function processNextJob(
   this: IScheduler,
   job: IJob,
-  jobFn: (data?: unknown) => void | Promise<void>,
+  jobFn: (data?: any) => void | Promise<void>,
 ): Promise<void> {
   // Emit start
   this.emit("job:start", job);

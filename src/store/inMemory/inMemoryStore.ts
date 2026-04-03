@@ -6,7 +6,7 @@ export class InMemoryStore implements IStore {
   private jobs = new Map<string | number, IJob>();
   private templates = new Map<
     string,
-    (data?: unknown) => void | Promise<void>
+    (data?: any) => void | Promise<void>
   >();
 
   async init(): Promise<boolean> {
@@ -66,7 +66,7 @@ export class InMemoryStore implements IStore {
 
   async addTemplate(
     name: string,
-    template: (data?: unknown) => void | Promise<void>,
+    template: (data?: any) => void | Promise<void>,
   ): Promise<boolean> {
     const result = this.templates.set(name, template);
     return result.has(name);
@@ -74,12 +74,12 @@ export class InMemoryStore implements IStore {
 
   async getTemplate(
     name: string,
-  ): Promise<((data?: unknown) => void | Promise<void>) | null> {
+  ): Promise<((data?: any) => void | Promise<void>) | null> {
     return this.templates.get(name) ?? null;
   }
 
   async getTemplates(): Promise<
-    Array<(data?: unknown) => void | Promise<void>>
+    Array<(data?: any) => void | Promise<void>>
   > {
     return Array.from(this.templates.values());
   }

@@ -105,13 +105,13 @@ export default class Scheduler extends EventEmitter implements IScheduler {
 
   async addTemplate(
     name: string,
-    template: (data?: unknown) => void | Promise<void>,
+    template: (data?: any) => void | Promise<void>,
   ): Promise<boolean> {
     return addTemplateFn.call(this, name, template);
   }
 
   async getTemplates(): Promise<
-    Array<(data?: unknown) => void | Promise<void>>
+    Array<(data?: any) => void | Promise<void>>
   > {
     return getTemplatesFn.call(this);
   }
