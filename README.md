@@ -22,8 +22,7 @@ A lightweight and easy-to-use job scheduler for Node.js with support for repeate
 - Simple API to add job templates and jobs
 - Written in TypeScript with type definitions
 - Job pausing, resuming, and removal
-- Event emitter for job lifecycle monitoring
-- Comprehensive logging with Winston
+- Fully typed event emitter for lifecycle monitoring with intellisense
 - Fast in-memory storage backend
 - Graceful shutdown with in-flight job draining
 - Async/await API throughout
@@ -43,8 +42,6 @@ The package includes full TypeScript support with type definitions. You can impo
 import { Scheduler, SchedulerOptions } from "super-simple-scheduler";
 
 const options: SchedulerOptions = {
-  logLevel: "info",
-  dev: true,
   processEvery: 1000,
   concurrency: 10,
 };
@@ -59,8 +56,6 @@ import { Scheduler, SchedulerOptions } from "super-simple-scheduler";
 
 // Create a scheduler instance
 const scheduler = new Scheduler({
-  logLevel: "info",
-  dev: false,
   processEvery: 1000, // Process jobs every 1 second
   concurrency: 10, // Max concurrent jobs (default: 10)
 });
@@ -96,8 +91,6 @@ new Scheduler(options: SchedulerOptions)
 
 **Parameters:**
 
-- `options.logLevel` (optional): Logging level ('none', 'debug', 'info', 'warn', 'error'). Default: 'info'
-- `options.dev` (optional): Development mode flag. Default: false
 - `options.processEvery` (optional): Interval in milliseconds to process jobs. Default: 1000
 - `options.concurrency` (optional): Maximum number of jobs that can run concurrently. Default: 10
 
@@ -105,8 +98,6 @@ new Scheduler(options: SchedulerOptions)
 
 ```typescript
 const scheduler = new Scheduler({
-  logLevel: "debug",
-  dev: true,
   processEvery: 5000, // Process every 5 seconds
   concurrency: 20, // Allow up to 20 concurrent jobs
 });
@@ -378,18 +369,49 @@ interface IJob {
 
 ### Events
 
-The scheduler extends `EventEmitter` and emits lifecycle events for each job:
+The scheduler extends `EventEmitter` with fully typed events. All event names and their callback signatures are defined in the `SchedulerEvents` interface, giving you full intellisense and compile-time safety.
+
+#### Scheduler Lifecycle Events
 
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `job:start` | `(job)` | Emitted before a job begins execution |
-| `job:attempt` | `(job, attemptNumber)` | Emitted before each attempt (including retries) |
-| `job:complete` | `(job)` | Emitted when a job succeeds |
-| `job:fail` | `(job, error)` | Emitted on each failed attempt |
+| `scheduler:start` | none | Emitted when the scheduler starts |
+| `scheduler:stop` | none | Emitted when the scheduler begins stopping |
+| `scheduler:drain` | `(count: number)` | Emitted when stop is waiting for in-flight jobs to complete |
+| `scheduler:error` | `(error: Error)` | Emitted on configuration or dispatch errors (e.g. missing template, job not found) |
+
+#### Job Lifecycle Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `job:start` | `(job: IJob)` | Emitted before a job begins execution |
+| `job:attempt` | `(job: IJob, attempt: number)` | Emitted before each attempt (including retries) |
+| `job:complete` | `(job: IJob)` | Emitted when a job succeeds |
+| `job:fail` | `(job: IJob, error: unknown, attempt: number)` | Emitted on each failed attempt |
+| `job:exhausted` | `(job: IJob, error: unknown)` | Emitted when a job fails all retry attempts |
+| `job:abort` | `(job: IJob, reason: string)` | Emitted when a job is removed during execution |
 
 **Example:**
 
 ```typescript
+// Scheduler lifecycle
+scheduler.on("scheduler:start", () => {
+  console.log("Scheduler started");
+});
+
+scheduler.on("scheduler:stop", () => {
+  console.log("Scheduler stopping");
+});
+
+scheduler.on("scheduler:drain", (count) => {
+  console.log(`Waiting for ${count} in-flight job(s) to finish`);
+});
+
+scheduler.on("scheduler:error", (error) => {
+  console.error("Scheduler error:", error.message);
+});
+
+// Job lifecycle
 scheduler.on("job:start", (job) => {
   console.log(`Job ${job.id} starting`);
 });
@@ -398,14 +420,20 @@ scheduler.on("job:complete", (job) => {
   console.log(`Job ${job.id} completed`);
 });
 
-scheduler.on("job:fail", (job, error) => {
-  console.error(`Job ${job.id} failed:`, error.message);
+scheduler.on("job:fail", (job, error, attempt) => {
+  console.warn(`Job ${job.id} failed attempt ${attempt}`);
 });
 
-scheduler.on("job:attempt", (job, attempt) => {
-  console.log(`Job ${job.id} attempt ${attempt}`);
+scheduler.on("job:exhausted", (job, error) => {
+  console.error(`Job ${job.id} failed all retries`);
+});
+
+scheduler.on("job:abort", (job, reason) => {
+  console.log(`Job ${job.id} aborted: ${reason}`);
 });
 ```
+
+Events are fully typed -- your editor will autocomplete event names and type-check callback parameters. Only events defined in `SchedulerEvents` are allowed; passing an invalid event name is a compile-time error.
 
 ## Job Dispatch Model
 
@@ -434,9 +462,7 @@ The scheduler uses a fast in-memory storage backend that's perfect for most use 
 ### In-Memory Store
 
 ```typescript
-const scheduler = new Scheduler({
-  logLevel: "info",
-});
+const scheduler = new Scheduler({});
 ```
 
 **Pros:**
@@ -550,24 +576,14 @@ await scheduler.addJob({
 
 ## Error Handling
 
-The scheduler includes comprehensive error handling:
+The scheduler includes comprehensive error handling via typed events:
 
 - Failed jobs are automatically retried up to the configured `maxRetries`
-- All errors are logged with detailed information using Winston
-- Jobs that fail all retry attempts are logged as errors and requeued for the next cycle
+- Each failed attempt emits `job:fail` with the job, error, and attempt number
+- Jobs that fail all retry attempts emit `job:exhausted` and are requeued for the next cycle
+- Configuration errors (missing templates, invalid job IDs) emit `scheduler:error`
 - One-time jobs are removed after successful execution
-- If a job is removed while it is being retried, execution is aborted
-
-## Logging
-
-The scheduler uses Winston for logging with configurable levels:
-
-```typescript
-const scheduler = new Scheduler({
-  logLevel: "debug", // 'none', 'debug', 'info', 'warn', 'error'
-  dev: true, // Enhanced logging for development
-});
-```
+- If a job is removed while it is being retried, execution is aborted and `job:abort` is emitted
 
 ## Examples
 
@@ -576,9 +592,7 @@ const scheduler = new Scheduler({
 ```typescript
 import { Scheduler } from "super-simple-scheduler";
 
-const scheduler = new Scheduler({
-  logLevel: "info",
-});
+const scheduler = new Scheduler({});
 
 // Email template
 await scheduler.addTemplate("sendEmail", async (data) => {
@@ -603,9 +617,7 @@ await scheduler.start();
 ### Data Processing Pipeline
 
 ```typescript
-const scheduler = new Scheduler({
-  logLevel: "debug",
-});
+const scheduler = new Scheduler({});
 
 // Data processing templates
 await scheduler.addTemplate("fetchData", async (data) => {
