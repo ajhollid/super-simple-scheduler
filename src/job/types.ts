@@ -1,7 +1,7 @@
 export interface IJob {
   id: string | number;
   template: string;
-  data?: unknown;
+  data?: any;
   repeat?: number;
   maxRetries?: number;
   active: boolean;

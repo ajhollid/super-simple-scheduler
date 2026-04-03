@@ -416,6 +416,10 @@ scheduler.on("job:start", (job) => {
   console.log(`Job ${job.id} starting`);
 });
 
+scheduler.on("job:attempt", (job, attempt) => {
+  console.log(`Job ${job.id} attempt ${attempt}`);
+});
+
 scheduler.on("job:complete", (job) => {
   console.log(`Job ${job.id} completed`);
 });
