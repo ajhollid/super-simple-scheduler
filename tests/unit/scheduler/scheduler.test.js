@@ -385,33 +385,109 @@ describe("Scheduler - Default and Optional Values", () => {
 
     expect(scheduler.processEvery).toBe(1000);
     expect(scheduler.intervalId).toBeNull();
-    expect(scheduler.logger).toBeDefined();
     expect(scheduler.store).toBeDefined();
   });
 
   it("should use custom values when options are provided", () => {
     const scheduler = new Scheduler({
-      logLevel: "debug",
-      dev: true,
       processEvery: 5000,
     });
 
     expect(scheduler.processEvery).toBe(5000);
     expect(scheduler.intervalId).toBeNull();
-    expect(scheduler.logger).toBeDefined();
     expect(scheduler.store).toBeDefined();
   });
 
   it("should use inMemory db", () => {
     const scheduler = new Scheduler({
-      logLevel: "debug",
-      dev: true,
       processEvery: 5000,
     });
 
     expect(scheduler.processEvery).toBe(5000);
     expect(scheduler.intervalId).toBeNull();
-    expect(scheduler.logger).toBeDefined();
     expect(scheduler.store).toBeInstanceOf(InMemoryStore);
+  });
+});
+
+describe("Scheduler - Typed Event Emitter", () => {
+  let scheduler;
+
+  beforeEach(() => {
+    scheduler = new Scheduler({});
+  });
+
+  it("emit should fire event and return true when listener exists", () => {
+    const handler = jest.fn();
+    scheduler.on("scheduler:start", handler);
+
+    const result = scheduler.emit("scheduler:start");
+
+    expect(result).toBe(true);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("emit should return false when no listener exists", () => {
+    const result = scheduler.emit("scheduler:start");
+    expect(result).toBe(false);
+  });
+
+  it("on should register a persistent listener", () => {
+    const handler = jest.fn();
+    scheduler.on("job:complete", handler);
+
+    scheduler.emit("job:complete", { id: "1", template: "t", active: true });
+    scheduler.emit("job:complete", { id: "1", template: "t", active: true });
+
+    expect(handler).toHaveBeenCalledTimes(2);
+  });
+
+  it("once should register a one-time listener", () => {
+    const handler = jest.fn();
+    scheduler.once("scheduler:stop", handler);
+
+    scheduler.emit("scheduler:stop");
+    scheduler.emit("scheduler:stop");
+
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("off should remove a listener", () => {
+    const handler = jest.fn();
+    scheduler.on("scheduler:start", handler);
+    scheduler.off("scheduler:start", handler);
+
+    scheduler.emit("scheduler:start");
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("removeListener should remove a listener", () => {
+    const handler = jest.fn();
+    scheduler.on("scheduler:start", handler);
+    scheduler.removeListener("scheduler:start", handler);
+
+    scheduler.emit("scheduler:start");
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("emit should pass typed arguments to listeners", () => {
+    const handler = jest.fn();
+    scheduler.on("job:fail", handler);
+
+    const job = { id: "1", template: "t", active: true };
+    const error = new Error("fail");
+    scheduler.emit("job:fail", job, error, 2);
+
+    expect(handler).toHaveBeenCalledWith(job, error, 2);
+  });
+
+  it("emit should pass count to scheduler:drain", () => {
+    const handler = jest.fn();
+    scheduler.on("scheduler:drain", handler);
+
+    scheduler.emit("scheduler:drain", 5);
+
+    expect(handler).toHaveBeenCalledWith(5);
   });
 });

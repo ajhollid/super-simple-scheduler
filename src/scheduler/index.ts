@@ -1,7 +1,6 @@
-import { IScheduler, type SchedulerOptions } from "./types.js";
+import { IScheduler, type SchedulerOptions, type SchedulerEvents } from "./types.js";
 import { IStore } from "../store/types.js";
 import { IJob } from "../job/types.js";
-import { Logger } from "../utils/logger.js";
 import { start as startFn } from "./start.js";
 import { stop as stopFn } from "./stop.js";
 import { processJobs as processJobsFn } from "./process-jobs.js";
@@ -23,24 +22,52 @@ export default class Scheduler extends EventEmitter implements IScheduler {
   public processEvery: number;
   public intervalId: NodeJS.Timeout | null;
   public store: IStore;
-  public logger: Logger;
   public running: Set<Promise<void>>;
   public concurrency: number;
 
   constructor(options: SchedulerOptions) {
     super();
-    const {
-      logLevel = "info",
-      dev = false,
-      processEvery = 1000,
-      concurrency = 10,
-    } = options;
+    const { processEvery = 1000, concurrency = 10 } = options;
     this.processEvery = processEvery;
     this.running = new Set<Promise<void>>();
     this.concurrency = concurrency;
     this.intervalId = null;
-    this.logger = new Logger(logLevel, dev);
     this.store = new InMemoryStore();
+  }
+
+  emit<K extends keyof SchedulerEvents>(
+    event: K,
+    ...args: Parameters<SchedulerEvents[K]>
+  ): boolean {
+    return super.emit(event, ...args);
+  }
+
+  on<K extends keyof SchedulerEvents>(
+    event: K,
+    listener: SchedulerEvents[K],
+  ): this {
+    return super.on(event, listener);
+  }
+
+  once<K extends keyof SchedulerEvents>(
+    event: K,
+    listener: SchedulerEvents[K],
+  ): this {
+    return super.once(event, listener);
+  }
+
+  off<K extends keyof SchedulerEvents>(
+    event: K,
+    listener: SchedulerEvents[K],
+  ): this {
+    return super.off(event, listener);
+  }
+
+  removeListener<K extends keyof SchedulerEvents>(
+    event: K,
+    listener: SchedulerEvents[K],
+  ): this {
+    return super.removeListener(event, listener);
   }
 
   async start(): Promise<boolean> {
@@ -110,9 +137,7 @@ export default class Scheduler extends EventEmitter implements IScheduler {
     return addTemplateFn.call(this, name, template);
   }
 
-  async getTemplates(): Promise<
-    Array<(data?: any) => void | Promise<void>>
-  > {
+  async getTemplates(): Promise<Array<(data?: any) => void | Promise<void>>> {
     return getTemplatesFn.call(this);
   }
 

@@ -2,17 +2,10 @@ import { processJobs, processNextJob, shouldJobRun } from "../../../src/schedule
 import { jest } from "@jest/globals";
 
 describe("processJobs function", () => {
-  let mockLogger;
   let mockStore;
   let context;
 
   beforeEach(() => {
-    mockLogger = {
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-    };
-
     mockStore = {
       getJobs: jest.fn().mockResolvedValue([]),
       getJob: jest.fn().mockResolvedValue(null),
@@ -24,7 +17,6 @@ describe("processJobs function", () => {
     };
 
     context = {
-      logger: mockLogger,
       store: mockStore,
       emit: jest.fn(),
       running: new Set(),
@@ -96,8 +88,9 @@ describe("processJobs function", () => {
 
       await processJobs.call(context);
       await Promise.all(context.running);
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining("missing")
+      expect(context.emit).toHaveBeenCalledWith(
+        "scheduler:error",
+        expect.any(Error)
       );
       expect(mockStore.lockJob).not.toHaveBeenCalled();
     });
@@ -144,8 +137,8 @@ describe("processJobs function", () => {
 
       await processJobs.call(context);
       await Promise.all(context.running);
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        "Unexpected error while processing job:",
+      expect(context.emit).toHaveBeenCalledWith(
+        "scheduler:error",
         expect.any(Error)
       );
     });
@@ -216,8 +209,10 @@ describe("processJobs function", () => {
         lastFailReason: "fail",
         lastFailedAt: expect.any(Number),
       }));
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("failed after 2 immediate attempts")
+      expect(context.emit).toHaveBeenCalledWith(
+        "job:exhausted",
+        expect.objectContaining({ id: "1" }),
+        expect.any(Error),
       );
     });
 
@@ -260,11 +255,17 @@ describe("processJobs function", () => {
       );
 
       expect(jobFn).toHaveBeenCalledTimes(1);
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining("has been removed")
+      expect(context.emit).toHaveBeenCalledWith(
+        "job:abort",
+        expect.objectContaining({ id: "1" }),
+        expect.stringContaining("has been removed"),
       );
-      // Should not log the "failed after N attempts" error
-      expect(mockLogger.error).not.toHaveBeenCalled();
+      // Should not emit job:exhausted
+      expect(context.emit).not.toHaveBeenCalledWith(
+        "job:exhausted",
+        expect.anything(),
+        expect.anything(),
+      );
     });
 
     it("should remove one-time jobs after execution", async () => {
@@ -335,7 +336,11 @@ describe("processJobs function", () => {
       );
 
       expect(jobFn).toHaveBeenCalledTimes(2);
-      expect(mockLogger.error).not.toHaveBeenCalled();
+      expect(context.emit).not.toHaveBeenCalledWith(
+        "job:exhausted",
+        expect.anything(),
+        expect.anything(),
+      );
       expect(mockStore.updateJob).toHaveBeenCalledWith("1", expect.objectContaining({
         runCount: 2,
         failCount: 1,

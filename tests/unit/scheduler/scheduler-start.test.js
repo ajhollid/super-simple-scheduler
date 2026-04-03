@@ -3,7 +3,6 @@ import { jest } from "@jest/globals";
 
 describe("start function", () => {
   let mockStore;
-  let mockLogger;
   let context;
 
   beforeEach(() => {
@@ -11,13 +10,9 @@ describe("start function", () => {
       init: jest.fn(),
     };
 
-    mockLogger = {
-      info: jest.fn(),
-    };
-
     context = {
       store: mockStore,
-      logger: mockLogger,
+      emit: jest.fn(),
       processJobs: jest.fn(),
     };
   });

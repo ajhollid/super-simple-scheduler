@@ -1,15 +1,38 @@
 import { EventEmitter } from "events";
 import { IJob } from "../job/types.js";
 import { IStore } from "../store/types.js";
-import { Logger } from "../utils/logger.js";
 
 export interface IScheduler extends EventEmitter {
+  emit<K extends keyof SchedulerEvents>(
+    event: K,
+    ...args: Parameters<SchedulerEvents[K]>
+  ): boolean;
+
+  on<K extends keyof SchedulerEvents>(
+    event: K,
+    listener: SchedulerEvents[K],
+  ): this;
+
+  once<K extends keyof SchedulerEvents>(
+    event: K,
+    listener: SchedulerEvents[K],
+  ): this;
+
+  off<K extends keyof SchedulerEvents>(
+    event: K,
+    listener: SchedulerEvents[K],
+  ): this;
+
+  removeListener<K extends keyof SchedulerEvents>(
+    event: K,
+    listener: SchedulerEvents[K],
+  ): this;
+
   processEvery: number;
   intervalId: NodeJS.Timeout | null;
   running: Set<Promise<void>>;
   concurrency: number;
   store: IStore;
-  logger: Logger;
   start: () => Promise<boolean>;
   stop: () => Promise<boolean>;
   processJobs(): Promise<void>;
@@ -56,7 +79,21 @@ export interface IScheduler extends EventEmitter {
 
 export type SchedulerOptions = {
   concurrency?: number;
-  logLevel?: "none" | "info" | "debug" | "warn" | "error";
-  dev?: boolean;
   processEvery?: number;
 };
+
+export interface SchedulerEvents {
+  // Scheduler lifecycle
+  "scheduler:start": () => void;
+  "scheduler:stop": () => void;
+  "scheduler:drain": (count: number) => void;
+  "scheduler:error": (error: Error) => void;
+
+  // Job lifecycle
+  "job:start": (job: IJob) => void;
+  "job:attempt": (job: IJob, attempt: number) => void;
+  "job:complete": (job: IJob) => void;
+  "job:fail": (job: IJob, error: unknown, attempt: number) => void;
+  "job:exhausted": (job: IJob, error: unknown) => void;
+  "job:abort": (job: IJob, reason: string) => void;
+}
