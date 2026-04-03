@@ -1,6 +1,11 @@
 import Scheduler from "../../src/scheduler/index.js";
 import { jest } from "@jest/globals";
 
+async function processAndDrain(scheduler) {
+  await scheduler.processJobs();
+  await Promise.all(scheduler.running);
+}
+
 describe("Scheduler Integration", () => {
   let scheduler;
 
@@ -83,7 +88,7 @@ describe("Scheduler Integration", () => {
       await scheduler.addJob({ id: "job-1", template: "test" });
       await scheduler.pauseJob("job-1");
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).not.toHaveBeenCalled();
     });
   });
@@ -130,7 +135,7 @@ describe("Scheduler Integration", () => {
       await scheduler.addTemplate("once", fn);
       await scheduler.addJob({ id: "job-1", template: "once" });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).toHaveBeenCalledTimes(1);
 
       const job = await scheduler.getJob("job-1");
@@ -146,7 +151,7 @@ describe("Scheduler Integration", () => {
         data: { userId: 42 },
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).toHaveBeenCalledWith({ userId: 42 });
     });
 
@@ -159,7 +164,7 @@ describe("Scheduler Integration", () => {
         repeat: 100,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).toHaveBeenCalledTimes(1);
 
       const job = await scheduler.getJob("job-1");
@@ -178,10 +183,10 @@ describe("Scheduler Integration", () => {
         repeat: 60000,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).toHaveBeenCalledTimes(1);
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
@@ -194,7 +199,7 @@ describe("Scheduler Integration", () => {
         startAt: Date.now() + 60000,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).not.toHaveBeenCalled();
     });
 
@@ -221,11 +226,43 @@ describe("Scheduler Integration", () => {
       await scheduler.addJob({ id: "a", template: "slow", data: { id: "a" } });
       await scheduler.addJob({ id: "b", template: "slow", data: { id: "b" } });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       expect(order[0]).toBe("start-a");
       expect(order[1]).toBe("start-b");
       expect(order).toHaveLength(4);
+    });
+
+    it("should not delay other jobs when one job is long-running", async () => {
+      const fastResults = [];
+
+      await scheduler.addTemplate("slow", async () => {
+        await new Promise((r) => setTimeout(r, 500));
+      });
+      await scheduler.addTemplate("fast", async () => {
+        fastResults.push(Date.now());
+      });
+
+      await scheduler.addJob({
+        id: "slow-job",
+        template: "slow",
+        repeat: 60000,
+      });
+      await scheduler.addJob({
+        id: "fast-job",
+        template: "fast",
+        repeat: 50,
+      });
+
+      await scheduler.start();
+
+      // Wait long enough for several fast cycles but less than the slow job duration
+      await new Promise((r) => setTimeout(r, 300));
+
+      await scheduler.stop();
+
+      // The fast job should have executed multiple times while the slow job was still running
+      expect(fastResults.length).toBeGreaterThanOrEqual(3);
     });
   });
 
@@ -240,7 +277,7 @@ describe("Scheduler Integration", () => {
         maxRetries: 3,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).toHaveBeenCalledTimes(3);
 
       const job = await scheduler.getJob("job-1");
@@ -262,7 +299,7 @@ describe("Scheduler Integration", () => {
         maxRetries: 3,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       const job = await scheduler.getJob("job-1");
       expect(job.runCount).toBe(2);
@@ -286,7 +323,7 @@ describe("Scheduler Integration", () => {
         maxRetries: 5,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(callCount).toBe(1);
 
       const job = await scheduler.getJob("job-1");
@@ -302,7 +339,7 @@ describe("Scheduler Integration", () => {
         repeat: 1000,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).toHaveBeenCalledTimes(3);
     });
   });
@@ -316,7 +353,7 @@ describe("Scheduler Integration", () => {
       // Manually lock the job via the store
       await scheduler.store.lockJob("job-1");
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
       expect(fn).not.toHaveBeenCalled();
     });
 
@@ -328,7 +365,7 @@ describe("Scheduler Integration", () => {
         repeat: 1000,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       const job = await scheduler.getJob("job-1");
       expect(job.lockedAt).toBeNull();
@@ -345,7 +382,7 @@ describe("Scheduler Integration", () => {
         maxRetries: 1,
       });
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       const job = await scheduler.getJob("job-1");
       expect(job.lockedAt).toBeNull();
@@ -418,7 +455,7 @@ describe("Scheduler Integration", () => {
 
       await scheduler.addTemplate("test", () => {});
       await scheduler.addJob({ id: "job-1", template: "test" });
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       expect(startHandler).toHaveBeenCalledTimes(1);
       expect(startHandler).toHaveBeenCalledWith(
@@ -432,7 +469,7 @@ describe("Scheduler Integration", () => {
 
       await scheduler.addTemplate("test", () => {});
       await scheduler.addJob({ id: "job-1", template: "test" });
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       expect(attemptHandler).toHaveBeenCalledTimes(1);
       expect(attemptHandler).toHaveBeenCalledWith(
@@ -447,7 +484,7 @@ describe("Scheduler Integration", () => {
 
       await scheduler.addTemplate("test", () => {});
       await scheduler.addJob({ id: "job-1", template: "test" });
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       expect(completeHandler).toHaveBeenCalledTimes(1);
       expect(completeHandler).toHaveBeenCalledWith(
@@ -466,7 +503,7 @@ describe("Scheduler Integration", () => {
         id: "job-1",
         template: "fail",
       });
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       // Default maxRetries is 3, so job:fail fires 3 times
       expect(failHandler).toHaveBeenCalledTimes(3);
@@ -490,7 +527,7 @@ describe("Scheduler Integration", () => {
         template: "flaky",
         maxRetries: 3,
       });
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       expect(attemptHandler).toHaveBeenCalledTimes(3);
       expect(attemptHandler).toHaveBeenNthCalledWith(
@@ -526,7 +563,7 @@ describe("Scheduler Integration", () => {
         template: "flaky",
         maxRetries: 3,
       });
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       expect(failHandler).toHaveBeenCalledTimes(1);
       expect(completeHandler).toHaveBeenCalledTimes(1);
@@ -544,7 +581,7 @@ describe("Scheduler Integration", () => {
       // Manually lock the job — shouldJobRun skips locked jobs
       await scheduler.store.lockJob("job-1");
 
-      await scheduler.processJobs();
+      await processAndDrain(scheduler);
 
       expect(startHandler).not.toHaveBeenCalled();
       expect(completeHandler).not.toHaveBeenCalled();

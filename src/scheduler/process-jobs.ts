@@ -3,8 +3,6 @@ import { IJob } from "../job/types.js";
 
 export async function processJobs(this: IScheduler) {
   const jobs = await this.store.getJobs();
-  const concurrency = 10;
-  const running = new Set();
 
   for (const job of jobs) {
     const shouldRun = shouldJobRun.call(this, job);
@@ -18,20 +16,19 @@ export async function processJobs(this: IScheduler) {
       continue;
     }
 
+    if (this.running.size >= this.concurrency) {
+      await Promise.race(this.running);
+    }
+
     const p = processNextJob
       .call(this, job, jobFn)
       .catch((error: Error) => {
         this.logger.error("Unexpected error while processing job:", error);
       })
-      .finally(() => running.delete(p));
+      .finally(() => this.running.delete(p));
 
-    running.add(p);
-
-    if (running.size >= concurrency) {
-      await Promise.race(running);
-    }
+    this.running.add(p);
   }
-  await Promise.all(running);
 }
 
 /**

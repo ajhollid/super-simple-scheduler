@@ -27,6 +27,8 @@ describe("processJobs function", () => {
       logger: mockLogger,
       store: mockStore,
       emit: jest.fn(),
+      running: new Set(),
+      concurrency: 10,
     };
   });
 
@@ -93,6 +95,7 @@ describe("processJobs function", () => {
       mockStore.getTemplate.mockResolvedValue(null);
 
       await processJobs.call(context);
+      await Promise.all(context.running);
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining("missing")
       );
@@ -106,6 +109,7 @@ describe("processJobs function", () => {
       mockStore.getTemplate.mockResolvedValue(() => {});
 
       await processJobs.call(context);
+      await Promise.all(context.running);
       expect(mockStore.lockJob).toHaveBeenCalledWith("1");
     });
 
@@ -127,6 +131,7 @@ describe("processJobs function", () => {
       });
 
       await processJobs.call(context);
+      await Promise.all(context.running);
       expect(maxConcurrent).toBeLessThanOrEqual(10);
     });
 
@@ -138,6 +143,7 @@ describe("processJobs function", () => {
       mockStore.lockJob.mockRejectedValue(new Error("unexpected"));
 
       await processJobs.call(context);
+      await Promise.all(context.running);
       expect(mockLogger.error).toHaveBeenCalledWith(
         "Unexpected error while processing job:",
         expect.any(Error)
