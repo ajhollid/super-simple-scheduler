@@ -6,6 +6,8 @@ import { Logger } from "../utils/logger.js";
 export interface IScheduler extends EventEmitter {
   processEvery: number;
   intervalId: NodeJS.Timeout | null;
+  running: Set<Promise<void>>;
+  concurrency: number;
   store: IStore;
   logger: Logger;
   start: () => Promise<boolean>;
@@ -53,6 +55,7 @@ export interface IScheduler extends EventEmitter {
 }
 
 export type SchedulerOptions = {
+  concurrency?: number;
   logLevel?: "none" | "info" | "debug" | "warn" | "error";
   dev?: boolean;
   processEvery?: number;

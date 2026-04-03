@@ -24,11 +24,20 @@ export default class Scheduler extends EventEmitter implements IScheduler {
   public intervalId: NodeJS.Timeout | null;
   public store: IStore;
   public logger: Logger;
+  public running: Set<Promise<void>>;
+  public concurrency: number;
 
   constructor(options: SchedulerOptions) {
     super();
-    const { logLevel = "info", dev = false, processEvery = 1000 } = options;
+    const {
+      logLevel = "info",
+      dev = false,
+      processEvery = 1000,
+      concurrency = 10,
+    } = options;
     this.processEvery = processEvery;
+    this.running = new Set<Promise<void>>();
+    this.concurrency = concurrency;
     this.intervalId = null;
     this.logger = new Logger(logLevel, dev);
     this.store = new InMemoryStore();

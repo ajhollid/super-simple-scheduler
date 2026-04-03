@@ -17,6 +17,7 @@ describe("stop function", () => {
     context = {
       logger: mockLogger,
       store: mockStore,
+      running: new Set(),
     };
   });
 
@@ -50,5 +51,20 @@ describe("stop function", () => {
     await stop.call(context);
     expect(clearSpy).toHaveBeenCalledWith(originalIntervalId);
     expect(context.intervalId).toBeNull();
+  });
+
+  it("should wait for in-flight jobs before closing store", async () => {
+    let jobResolved = false;
+    const jobPromise = new Promise((resolve) => {
+      setTimeout(() => {
+        jobResolved = true;
+        resolve();
+      }, 50);
+    });
+    context.running = new Set([jobPromise]);
+
+    await stop.call(context);
+    expect(jobResolved).toBe(true);
+    expect(mockStore.close).toHaveBeenCalled();
   });
 });
