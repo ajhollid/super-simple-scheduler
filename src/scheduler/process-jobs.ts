@@ -12,7 +12,10 @@ export async function processJobs(this: IScheduler) {
 
     const jobFn = await this.store.getTemplate(job.template);
     if (!jobFn) {
-      this.logger.warn(`Job template "${job.template}" not found`);
+      this.emit(
+        "scheduler:error",
+        new Error(`Job template "${job.template}" not found`),
+      );
       continue;
     }
 
@@ -23,7 +26,7 @@ export async function processJobs(this: IScheduler) {
     const p = processNextJob
       .call(this, job, jobFn)
       .catch((error: Error) => {
-        this.logger.error("Unexpected error while processing job:", error);
+        this.emit("scheduler:error", error);
       })
       .finally(() => this.running.delete(p));
 
@@ -95,8 +98,10 @@ export async function processNextJob(
     } catch (error) {
       const existingJob = await this.store.getJob(job.id);
       if (!existingJob) {
-        this.logger.info(
-          `Job with id ${job.id} has been removed, aborting execution.`,
+        this.emit(
+          "job:abort",
+          job,
+          `${job.id} has been removed, aborting execution.`,
         );
         success = true;
         break;
@@ -104,13 +109,7 @@ export async function processNextJob(
       failCount++;
       lastFailedAt = Date.now();
       lastFailReason = error instanceof Error ? error.message : "Unknown error";
-      // Emit fail
-      this.emit("job:fail", job, error);
-      this.logger.warn(`Job failed (attempt ${attempts}/${maxRetries})`, {
-        id: job.id,
-        failReason: lastFailReason,
-        failedAt: lastFailedAt,
-      });
+      this.emit("job:fail", job, error, attempts);
     } finally {
       lastFinishedAt = Date.now();
     }
@@ -120,8 +119,10 @@ export async function processNextJob(
   await this.store.unlockJob(job.id);
 
   if (!success) {
-    this.logger.error(
-      `Job failed after ${maxRetries} immediate attempts, job will be requeued on schedule`,
+    this.emit(
+      "job:exhausted",
+      job,
+      new Error(`${job.id} failed to execute after ${maxRetries} attempts`),
     );
   }
 

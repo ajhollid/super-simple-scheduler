@@ -10,7 +10,7 @@ describe("Scheduler Integration", () => {
   let scheduler;
 
   beforeEach(() => {
-    scheduler = new Scheduler({ logLevel: "none", processEvery: 50 });
+    scheduler = new Scheduler({ processEvery: 50 });
   });
 
   afterEach(async () => {
@@ -510,6 +510,7 @@ describe("Scheduler Integration", () => {
       expect(failHandler).toHaveBeenCalledWith(
         expect.objectContaining({ id: "job-1" }),
         expect.any(Error),
+        expect.any(Number),
       );
     });
 

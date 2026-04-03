@@ -3,22 +3,17 @@ import { jest } from "@jest/globals";
 
 describe("resumeJob function", () => {
   let mockStore;
-  let mockLogger;
   let context;
 
   beforeEach(() => {
-    mockLogger = {
-      warn: jest.fn(),
-    };
-
     mockStore = {
       getJob: jest.fn(),
       updateJob: jest.fn(),
     };
 
     context = {
-      logger: mockLogger,
       store: mockStore,
+      emit: jest.fn(),
     };
   });
 
@@ -48,7 +43,7 @@ describe("resumeJob function", () => {
     const result = await resumeJob.call(context, "nonexistent");
 
     expect(result).toBe(false);
-    expect(mockLogger.warn).toHaveBeenCalled();
+    expect(context.emit).toHaveBeenCalledWith("scheduler:error", expect.any(Error));
     expect(mockStore.updateJob).not.toHaveBeenCalled();
   });
 });

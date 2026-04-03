@@ -3,22 +3,17 @@ import { jest } from "@jest/globals";
 
 describe("removeTemplate function", () => {
   let mockStore;
-  let mockLogger;
   let context;
 
   beforeEach(() => {
-    mockLogger = {
-      warn: jest.fn(),
-    };
-
     mockStore = {
       getTemplate: jest.fn(),
       removeTemplate: jest.fn(),
     };
 
     context = {
-      logger: mockLogger,
       store: mockStore,
+      emit: jest.fn(),
     };
   });
 
@@ -38,7 +33,7 @@ describe("removeTemplate function", () => {
     const result = await removeTemplate.call(context, "nonexistent");
 
     expect(result).toBe(false);
-    expect(mockLogger.warn).toHaveBeenCalled();
+    expect(context.emit).toHaveBeenCalledWith("scheduler:error", expect.any(Error));
     expect(mockStore.removeTemplate).not.toHaveBeenCalled();
   });
 });

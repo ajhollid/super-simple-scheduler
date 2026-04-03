@@ -22,7 +22,10 @@ export async function addJob(
   // Check if template exists
   const templateFn = await this.store.getTemplate(template);
   if (!templateFn) {
-    this.logger.error(`Template "${template}" does not exist, cannot add job`);
+    this.emit(
+      "scheduler:error",
+      new Error(`Template "${template}" does not exist, cannot add job`),
+    );
     return false;
   }
 

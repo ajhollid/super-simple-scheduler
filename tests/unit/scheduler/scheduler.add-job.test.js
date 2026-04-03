@@ -2,17 +2,10 @@ import { addJob } from "../../../src/scheduler/add-job.js";
 import { jest } from "@jest/globals";
 
 describe("addJob function", () => {
-  let mockLogger;
   let mockStore;
   let context;
 
   beforeEach(() => {
-    mockLogger = {
-      warn: jest.fn(),
-      info: jest.fn(),
-      error: jest.fn(),
-    };
-
     mockStore = {
       getJob: jest.fn(),
       addJob: jest.fn(),
@@ -21,8 +14,8 @@ describe("addJob function", () => {
     };
 
     context = {
-      logger: mockLogger,
       store: mockStore,
+      emit: jest.fn(),
     };
   });
 
@@ -35,7 +28,7 @@ describe("addJob function", () => {
     });
 
     expect(result).toBe(false);
-    expect(mockLogger.error).toHaveBeenCalled();
+    expect(context.emit).toHaveBeenCalledWith("scheduler:error", expect.any(Error));
     expect(mockStore.addJob).not.toHaveBeenCalled();
     expect(mockStore.updateJob).not.toHaveBeenCalled();
   });
