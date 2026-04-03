@@ -1,6 +1,6 @@
 {
   "name": "super-simple-scheduler",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A simple scheduler for Node.js",
   "repository": {
     "type": "git",
